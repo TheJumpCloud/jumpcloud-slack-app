@@ -11,9 +11,6 @@ The following commands can be used in your JumpCloud App for Slack.
 /<command-name> help
 ```
 ```
-For assistance with user commands enter `<command-name< user help`.
-```
-```
 /<command-name> user help
 ```
 ```User Commands Help
