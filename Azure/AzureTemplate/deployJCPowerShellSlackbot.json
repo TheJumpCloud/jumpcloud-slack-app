@@ -47,7 +47,7 @@
         "keyVaultName": "[concat(uniqueString(resourceGroup().id),'-kv')]",
         "appInsightsName": "[concat(uniqueString(resourceGroup().id),'-ai')]",
         "storageName": "[concat(uniqueString(resourceGroup().id))]",
-        "packageURL": "https://jcautopkg.s3-us-west-2.amazonaws.com/JCPowerShellSlackBot.zip",
+        "packageURL": "https://jcautopkg.s3-us-west-2.amazonaws.com/JumpCloudAppForSlackAzure.zip",
         "powerShellVersion": "~7",
 
         "EncryptedKey": "[resourceId(resourceGroup().name, 'Microsoft.KeyVault/vaults/secrets', variables('keyVaultName'), 'JCAPIKEY')]",
