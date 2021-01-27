@@ -1,64 +1,44 @@
-
 # How to Deploy the JumpCloud App for Slack with AWS
 
 The JumpCloud App for Slack can be deployed with the click of a button, and a few additional clicks in Slack.
 
-## Requirements
-
-The following resources are required in both Slack and Azure to build the JumpCloud Azure Slackbot.
-
-Azure:
-
-* New (or existing resource group)
-* Storage account
-* Application Insights
-* Function App
-* Key vault
-
-App Service plan
-Slack:
-
-* New slack App
-* Signing Secret
-* New Slash Command
-
 ## Instructions
 
-The following steps should be followed to deploy the JumpCloud Azure Slackbot to your Azure and Slack tenants.
+The following steps should be followed to deploy the JumpCloud Azure Slackbot to your AWS and Slack tenants.
 ### Create the Slack App
 
 Creating a new Slack App is relatively simple. Refer to [Slack's documentation](https://api.slack.com/apps) as necessary. Create a net new Slack App in your Slack workspace before continuing to the next step.
 
-### Configure Azure Parameters
+### Configure Slack Permissions
 
-Click the "Deploy to Azure" button to open the deployment template in your Azure tenant.
+Once you have created your app, click "OAuth and Permissions". Scroll down to "Scopes". Add the following OAuth scopes to your Slack Application.
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FTheJumpCloud%2Fsupport-admin-tools%2Fmaster%2FJumpCloud.Azure%2FArmTemplates%2FdeployJCPowerShellSlackBot.json%3Ftoken%3DAM7NDWO3GZGURWVXGKJP6ZK72FD3C)
+![Permissions](./images/slackPermissions.png)
 
-After clicking the "Deploy to Azure" button and logging in to your Azure tenant, fill out the required parameters to build the JumpCloud SlackBot in your Azure tenant.
+Once that is done, install your Slack Application in your Workspace. This will generate a Bot OAuth token, which will be used when configuring your Serverless App in AWS.
 
-From Slack, you'll need your App's signing secret. Copy and paste this value into Azure before building the resource
+### Configure AWS Parameters
 
-![Parameters](./images/signingSecret.png)
+From Slack, you'll need your App's signing secret and the Bot OAuth Token. Copy and paste this value into Azure before building the resource
 
-The JumpCloud API Key, ORG Id and slack Signing Secret parameters are all validated for correct parameter field length before the resource can be built. Optionally change the data storage retention value for extended logging (There may be additional costs associated with changing this value).
+![Signing Secret](./images/signingSecret.png)
 
-![Parameters](./images/newDeployment.png)
+The JumpCloud API Key, Organization Id (Optional), Slack Signing Secret and Slack OAuth Token parameters are all validated for correct parameter field length before the resource can be built.
 
-Click "Review + Create" and wait for the resources to complete deployment.
+Fill in these values and acknowledge that the app will create custom IAM roles and resource policies. Click "Deploy"
+
+![Application Settings](./images/awsAppSettings.png)
 
 ### Configure Slack
 
 After the resources are built, the function url will have to be copied to your Slack App's slash command "Request URL" field to link the Slash Command to the resources in Azure.
 
-Navigate to the newly created function app, click the functions item in the left navigation column and select the "HttpTrigger-ReceiveSlackCommand" function. Click Get Function URL and copy the url
+Navigate to the newly created CloudFormation Stack. Click on the "Resources" tab and open the "SlackAppAPI".
 
-![Parameters](./images/functionURL.png)
+In the sidebar, click on "Stages", then expand the "Live" stage and click on the nested "POST". This will provide you with the Invoke URL for your Application. Enter this in your Slash Command's Request URL.
 
-Paste this URL into the Slack App Slash Command "Request URL Field"
-
-![Parameters](./images/slackAppRequestUrl.png)
+![API URL](./images/awsApiUrl.png)
 
 ### Test the App
 
-After configuring the slack app, try to run one of the commands in your Slack Channel, your command will be processed and returned via Azure resources.
+After configuring the slack app, try to run one of the commands in your Slack Channel, your command will be processed and returned via AWS resources.
