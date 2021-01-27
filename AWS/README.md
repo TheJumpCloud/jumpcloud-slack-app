@@ -19,6 +19,12 @@ Once that is done, install your Slack Application in your Workspace. This will g
 
 ### Configure AWS Parameters
 
+The JumpCloud App for Slack AWS Serverless Application can be deployed from the following link.
+
+https://serverlessrepo.aws.amazon.com/applications/us-east-1/339347137473/JumpCloud-SlackApp
+
+After and logging in to your AWS tenant, fill out the required parameters to build the JumpCloud App for Slack in your AWS tenant.
+
 From Slack, you'll need your App's signing secret and the Bot OAuth Token. Copy and paste this value into Azure before building the resource
 
 ![Signing Secret](./images/signingSecret.png)
@@ -41,6 +47,18 @@ In the sidebar, click on "Stages", then expand the "Live" stage and click on the
 
 ![Escape channels, users and links](./images/slackEscape.png)
 
-### Test the App
+### Initialize the App
 
-After configuring the slack app, try to run one of the commands in your Slack Channel, your command will be processed and returned via AWS resources.
+After configuring the slack app, jump back to the Slack Channel where the App was configured and send the app a command:
+
+`/<command-name> user help`
+
+The initialization of the JumpCloud App for Slack may take some time to download the required PowerShell modules, by default Slack must receive a url response in three seconds it will return an timeout error if it does not. While Azure Initializes the JumpCloud App for Slack, you may see a response on your slack channel stating that your slack command failed. This is expected until the App initializes.
+
+![SlackResponse](./images/failedSlashCommand.png)
+
+Until the managed dependencies are finished downloading, the App will queue commands triggered through the Slack channel.
+
+After the function has initialized, the Slack Channel should populate your JumpCloud App for Slack commands.
+
+![helpResponse](./images/helpResponse.png)
