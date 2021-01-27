@@ -19,6 +19,12 @@ Once that is done, install your Slack Application in your Workspace. This will g
 
 ### Configure AWS Parameters
 
+The JumpCloud App for Slack AWS Serverless Application can be deployed from the following link.
+
+https://serverlessrepo.aws.amazon.com/applications/us-east-1/339347137473/JumpCloud-SlackApp
+
+After and logging in to your AWS tenant, fill out the required parameters to build the JumpCloud App for Slack in your AWS tenant.
+
 From Slack, you'll need your App's signing secret and the Bot OAuth Token. Copy and paste this value into Azure before building the resource
 
 ![Signing Secret](./images/signingSecret.png)
