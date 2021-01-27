@@ -1,0 +1,184 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+  JumpCloudApiKey:
+    Type: String
+    NoEcho: true
+    AllowedPattern: \b[a-z0-9]{40}\b
+  OrganizationID:
+    Type: String
+    AllowedPattern: \b[a-f0-9]{24}\b
+  SlackSigningString:
+    Type: String
+
+Metadata:
+  AWS::ServerlessRepo::Application:
+    Name: JumpCloud-Slackbot
+    Description: This Serverless Application can be used to deploy all the pieces in AWS required to configure the JumpCloud Slackbot.
+    Author: JumpCloud Solutions Architecture
+    SemanticVersion: 0.0.1
+    HomePageUrl: https://git.io/JJlrZ
+    SourceCodeUrl: https://git.io/JJiMo
+
+Resources:
+    SlackbotRole:
+        Type: AWS::IAM::Role
+        Properties: 
+          Description: A role for use in the JumpCloud Users CSV Serverless App
+          AssumeRolePolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Principal:
+                  Service:
+                  - lambda.amazonaws.com
+                Action:
+                  - 'sts:AssumeRole'
+          ManagedPolicyArns:
+            - arn:aws:iam::aws:policy/AWSLambdaExecute
+          Policies:
+            - PolicyName: CloudWatchMetrics
+              PolicyDocument:
+                Version: 2012-10-17
+                Statement:
+                  - Effect: Allow
+                    Action:
+                      - 'cloudwatch:PutMetricData'
+                    Resource: '*'
+            - PolicyName: LambdaPublishSNS
+              PolicyDocument:
+                Version: 2012-10-17
+                Statement:
+                  - Effect: Allow
+                    Action:
+                      - 'sns:Publish'
+                    Resource: '*'
+    SlackbotCmk:
+        Type: AWS::KMS::Key
+        Properties:
+            Description: An Symmetric CMK for use in the JumpCloud User CSV Serverless App
+            KeyPolicy:
+                Version: '2012-10-17'
+                Id: key-default-1
+                Statement:
+                  - Sid: Enable IAM User Permissions
+                    Effect: Allow
+                    Principal:
+                        AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+                    Action: kms:*
+                    Resource: '*'
+                  - Sid: Allow use of the key
+                    Effect: Allow
+                    Principal:
+                        AWS: !GetAtt SlackbotRole.Arn
+                    Action:
+                    - kms:DescribeKey
+                    - kms:Encrypt
+                    - kms:Decrypt
+                    - kms:ReEncrypt*
+                    - kms:GenerateDataKey
+                    - kms:GenerateDataKeyWithoutPlaintext
+                    Resource: '*'
+    SlackbotSecrets:
+        Type: AWS::SecretsManager::Secret
+        Properties:
+            Description: Secrets used by the JumpCloud SlackBot
+            SecretString: !Sub '{"JcApiKey": "${JumpCloudApiKey}", "SlackSigningString": "${SlackSigningString}"}'
+    SecretsResourcePolicy:
+        Type: AWS::SecretsManager::ResourcePolicy
+        Properties:
+          SecretId: !Ref SlackbotSecrets
+          ResourcePolicy:
+            Version: 2012-10-17
+            Statement:
+            - Effect: Allow
+              Principal: 
+                AWS: !GetAtt SlackbotRole.Arn
+              Action: secretsmanager:GetSecretValue
+              Resource: "*"
+    SlackbotParentFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            CodeUri: slack-parent.zip
+            Handler: slack-parent::slack_parent.Bootstrap::ExecuteFunction
+            MemorySize: 512
+            Timeout: 10
+            Runtime: dotnetcore3.1
+            Role: !GetAtt SlackbotRole.Arn
+            Environment:
+                Variables:
+                    SNSTopicArn: !Ref SlackbotSNS
+    SlackbotChildFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            CodeUri: slack-child.zip
+            Handler: slack-child::child.Bootstrap::ExecuteFunction
+            MemorySize: 512
+            Timeout: 180
+            Runtime: dotnetcore3.1
+            Role: !GetAtt SlackbotRole.Arn
+            KmsKeyArn: !GetAtt SlackbotCmk.Arn
+            Environment:
+                Variables:
+                    SecretsArn: !Ref SlackbotSecrets
+                    JcOrgId: !Sub ${OrganizationID}
+    SlackbotSNS:
+        Type: AWS::SNS::Topic
+        Properties:
+            Subscription:
+              - Endpoint: !GetAtt SlackbotChildFunction.Arn
+                Protocol: lambda
+    SlackbotAPI:
+        Type: AWS::ApiGateway::RestApi
+        Properties:
+            Name: SlackbotAPI
+            Body:
+                swagger: '2.0'
+                info:
+                  description: SLackbog
+                  title: Slackbot
+                schemes:
+                - https
+                paths:
+                  '/jc':
+                    post:
+                      summary: CSLackbot
+                      consumes:
+                      - application/x-www-form-urlencoded
+                      produces:
+                      - application/json
+                      responses:
+                        '200':
+                          description: Successful operation
+                          schema:
+                            "$ref": "#/definitions/Empty"
+                      x-amazon-apigateway-integration:
+                        responses:
+                          default:
+                            statusCode: '200'
+                        uri: 
+                          Fn::Sub:
+                          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${lambdaArn}/invocations
+                          - lambdaArn: !GetAtt SlackbotParentFunction.Arn
+                        requestTemplates:
+                          application/x-www-form-urlencoded: "{\n    \"postBody\" : $input.json(\"$\")\n}"
+                        passthroughBehavior: when_no_match
+                        httpMethod: POST
+                        contentHandling: CONVERT_TO_TEXT
+                        type: aws
+                definitions:
+                  Empty:
+                    type: object
+    SlackbotDeployment: 
+        Type: AWS::ApiGateway::Deployment
+        Properties: 
+            RestApiId: !Ref SlackbotAPI
+            StageName: live
+    LambdaPermissions:
+        Type: AWS::Lambda::Permission
+        Properties:
+            Action: lambda:InvokeFunction
+            FunctionName: !Ref SlackbotParentFunction
+            Principal: apigateway.amazonaws.com
+            SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${SlackbotAPI}/*/POST/*
