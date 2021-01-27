@@ -29,11 +29,20 @@ The following steps should be followed to deploy the JumpCloud App for Slack to 
 
 Creating a new Slack App is relatively simple. Refer to [Slack's documentation](https://api.slack.com/apps) as necessary. Create a net new Slack App in your Slack workspace before continuing to the next step.
 
+### Configure Slack Permissions
+
+Once you have created your app, click "OAuth and Permissions". Scroll down to "Scopes". Add the following OAuth scopes to your Slack Application.
+
+![Permissions](./images/slackPermissions.PNG)
+
+Once that is done, install your Slack Application in your Workspace. This will generate a Bot OAuth token, which will be used when configuring the JumpCloud App for Slack in Azure.
+
+![OAuthToken](./images/OAuthToken.png)
 ### Configure Azure Parameters
 
 Click the "Deploy to Azure" button to open the deployment template in your Azure tenant.
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FTheJumpCloud%2Fsupport-admin-tools%2Fmaster%2FJumpCloud.Azure%2FArmTemplates%2FdeployJCPowerShellSlackBot.json%3Ftoken%3DAM7NDWO3GZGURWVXGKJP6ZK72FD3C)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FTheJumpCloud%2Fjumpcloud-slack-app%2FSA-1464-GoLive%2FAzure%2FAzureTemplate%2FdeployJCPowerShellSlackbot.json%3Ftoken%3DAM7NDWLSIUCKJLRVJUFI4UDADLOBI)
 
 After clicking the "Deploy to Azure" button and logging in to your Azure tenant, fill out the required parameters to build the JumpCloud App for Slack in your Azure tenant.
 
@@ -59,6 +68,24 @@ Paste this URL into the Slack App Slash Command "Request URL Field"
 
 ![Parameters](./images/slackAppRequestUrl.png)
 
-### Test the App
+Before saving, check the "Escape channels, users, and links sent to your app" box. Click "Save".
 
-After configuring the slack app, try to run one of the commands in your Slack Channel, your command will be processed and returned via Azure resources.
+![Escape channels, users and links](./images/slackEscape.png)
+
+### Initialize the App
+
+After configuring the slack app, jump back to the Slack Channel where the App was configured and send the app a command:
+
+`/slashCommandName user help`
+
+The initialization of the JumpCloud App for Slack may take some time to download the required PowerShell modules, by default Slack Slash Commands to a url must return a response in three seconds, while Azure Initializes the JumpCloud App for Slack you may see a response on your slack channel stating that your slack command failed.
+
+![SlackResponse](./images/failedSlashCommand.png)
+
+If watching the HttpTrigger function logs, the console may return a message similar to the following until the function and it's PowerShell modules are initialized. Until the managed dependencies are finished downloading the App will queue commands triggered through the Slack Channel.
+
+![HttpTriggerResponse](./images/httpTriggerNotice.png)
+
+After the function has initialized, the Slack Channel should populate your JumpCloud App for Slack commands.
+
+![helpResponse](./images/helpResponse.png)

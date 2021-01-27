@@ -31,7 +31,7 @@ Fill in these values and acknowledge that the app will create custom IAM roles a
 
 ### Configure Slack
 
-After the resources are built, the function url will have to be copied to your Slack App's slash command "Request URL" field to link the Slash Command to the resources in Azure.
+After the resources are built, the function url will have to be copied to your Slack App's slash command "Request URL" field to link the Slash Command to the resources in AWS.
 
 Navigate to the newly created CloudFormation Stack. Click on the "Resources" tab and open the "SlackAppAPI".
 
