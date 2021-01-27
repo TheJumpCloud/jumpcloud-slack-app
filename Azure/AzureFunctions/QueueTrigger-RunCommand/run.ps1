@@ -85,8 +85,16 @@ If ($SlackObject.text)
                 resetmfa
                 {
                     $successMessage = "``$($user.username)``'s MFA token has been reset.";
-                    $errorMessage = "Unable to reset ``$($user.username)``'s MFA token.";
-                    "Reset-JcSdkUserMfa -id(`'$($user.id)`')"
+                    $errorMessage = "Unable to reset user ``$($user.username)``'s MFA token.";
+                    if ( $commandArray[3] )
+                    {
+                        $days = $commandArray[3]
+                    }
+                    else
+                    {
+                        $days = 7
+                    }
+                    "Reset-JcSdkUserMfa -id(`'$($user.id)`') -Exclusion -ExclusionUntil:((Get-Date).AddDays($($days)))"
                 }
                 resetpassword
                 {
@@ -98,11 +106,11 @@ If ($SlackObject.text)
                 {
                     $ResponseBody = $true
                     $successMessage = "``````User Commands Help
-$($SlashCommand) user restore <username>                  # restore a suspended JC user
-$($SlashCommand) user suspend <username>                  # suspend a JC user
-$($SlashCommand) user unlock <username>                   # unlock a locked JC user
-$($SlashCommand) user resetMfa <username>                 # reset MFA for a JC user
-$($SlashCommand) user resetPassword <username> <password> # reset a JC user's password``````"
+$($SlashCommand) user restore <username>                  # Restore a suspended JC user.
+$($SlashCommand) user suspend <username>                  # Suspend a JC user.
+$($SlashCommand) user unlock <username>                   # Unlock a locked JC user.
+$($SlashCommand) user resetMfa <username> <days>          # Reset MFA for a JC user. Default: 7 days
+$($SlashCommand) user resetPassword <username> <password> # Reset a JC user's password.``````"
                     $errorMessage = "Unable to retrieve ``user help`` information."
                 }
                 default
@@ -126,14 +134,14 @@ $($SlashCommand) user resetPassword <username> <password> # reset a JC user's pa
             $errorMessage = "Unable to parse command. For assistance enter ``$($SlashCommand) help``"
         }
     }
+    $ERROR.clear()
     if ($command)
     {
         $ResponseBody = Invoke-Expression -Command:($command) -ErrorVariable:('CommandError')
-        Write-Host "Error Variable: $($CommandError)"
         Write-Host "Results of $($command): $($ResponseBody)"
     }
 }
-if ( $ResponseBody )
+if ( !$ERROR )
 {
     # Reply to slack with results
     Invoke-WebRequest -UseBasicParsing `

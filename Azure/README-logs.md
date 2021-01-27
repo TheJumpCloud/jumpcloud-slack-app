@@ -1,6 +1,6 @@
-## JumpCloud Azure Slackbot Logging
+## JumpCloud JumpCloud App for Slack Azure Logging
 
-The JumpCloud Slackbot in Azure makes use of [Azure Application Insights](https://azure.microsoft.com/en-us/services/monitor/#features) to track invocations for each Azure Function. Two functions drive the JumpCloud Azure Slackbot functionality, "HttpTrigger-ReceiveSlackCommand"
+The JumpCloud App for Slack in Azure makes use of [Azure Application Insights](https://azure.microsoft.com/en-us/services/monitor/#features) to track invocations for each Azure Function. Two functions drive the JumpCloud App for Slack in Azure's functionality, "HttpTrigger-ReceiveSlackCommand"
 and "QueueTrigger-RunCommand". The following information can be found in each function:
 
 HttpTrigger-ReceiveSlackCommand:

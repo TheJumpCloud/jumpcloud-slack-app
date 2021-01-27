@@ -1,10 +1,10 @@
-# How to Deploy the JumpCloud Azure Slackbot
+# How to Deploy the JumpCloud App for Slack in Azure
 
-The JumpCloud Azure Slackbot can be deployed with the click of a button, and a few additional clicks in Slack.
+The JumpCloud App for Slack can be deployed to Azure with the click of a button, and a few additional clicks in Slack.
 
 ## Requirements
 
-The following resources are required in both Slack and Azure to build the JumpCloud Azure Slackbot.
+The following resources are required in both Slack and Azure to build the JumpCloud App for Slack.
 
 Azure:
 
@@ -23,7 +23,8 @@ Slack:
 
 ## Instructions
 
-The following steps should be followed to deploy the JumpCloud Azure Slackbot to your Azure and Slack tenants.
+The following steps should be followed to deploy the JumpCloud App for Slack to your Azure and Slack tenants.
+
 ### Create the Slack App
 
 Creating a new Slack App is relatively simple. Refer to [Slack's documentation](https://api.slack.com/apps) as necessary. Create a net new Slack App in your Slack workspace before continuing to the next step.
@@ -34,7 +35,7 @@ Click the "Deploy to Azure" button to open the deployment template in your Azure
 
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FTheJumpCloud%2Fsupport-admin-tools%2Fmaster%2FJumpCloud.Azure%2FArmTemplates%2FdeployJCPowerShellSlackBot.json%3Ftoken%3DAM7NDWO3GZGURWVXGKJP6ZK72FD3C)
 
-After clicking the "Deploy to Azure" button and logging in to your Azure tenant, fill out the required parameters to build the JumpCloud SlackBot in your Azure tenant.
+After clicking the "Deploy to Azure" button and logging in to your Azure tenant, fill out the required parameters to build the JumpCloud App for Slack in your Azure tenant.
 
 From Slack, you'll need your App's signing secret. Copy and paste this value into Azure before building the resource
 
