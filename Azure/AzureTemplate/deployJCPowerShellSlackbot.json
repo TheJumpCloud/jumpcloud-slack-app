@@ -43,9 +43,9 @@
     },
     "variables": {
         "hostingPlanName": "[replace(resourceGroup().name,'.','')]",
-        "functionAppName": "[concat(uniqueString(resourceGroup().id),'-fa')]",
-        "keyVaultName": "[concat(uniqueString(resourceGroup().id),'-kv')]",
-        "appInsightsName": "[concat(uniqueString(resourceGroup().id),'-ai')]",
+        "functionAppName": "[concat('fa-',uniqueString(resourceGroup().id))]",
+        "keyVaultName": "[concat('kv-',uniqueString(resourceGroup().id))]",
+        "appInsightsName": "[concat('ai-',uniqueString(resourceGroup().id))]",
         "storageName": "[concat(uniqueString(resourceGroup().id))]",
         "packageURL": "https://jcautopkg.s3-us-west-2.amazonaws.com/JumpCloudAppForSlackAzure.zip",
         "powerShellVersion": "~7",
