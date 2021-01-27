@@ -57,7 +57,7 @@ The initialization of the JumpCloud App for Slack may take some time to download
 
 ![SlackResponse](./images/failedSlashCommand.png)
 
-If watching the HttpTrigger function logs, the console may return a message similar to the following until the function and it's PowerShell modules are initialized. Until the managed dependencies are finished downloading, the App will queue commands triggered through the Slack channel.
+Until the managed dependencies are finished downloading, the App will queue commands triggered through the Slack channel.
 
 After the function has initialized, the Slack Channel should populate your JumpCloud App for Slack commands.
 
