@@ -58,6 +58,14 @@ If ($SlackObject.text)
             $user = Get-JcSdkUser -Filter("username:eq:$($commandArray[2])")
         }
     }
+    if ( $user.id )
+        {
+            $username = $user.Username
+        }
+        else 
+        {
+            $username = $commandArray[2]
+        }
     $command = switch ( $commandArray[0].ToLower() )
     {
         user
@@ -66,26 +74,26 @@ If ($SlackObject.text)
             {
                 restore
                 {
-                    $successMessage = "``$($user.username)`` has been restored.";
-                    $errorMessage = "Unable to restore ``$($user.username)``.";
+                    $successMessage = "``$($username)`` has been restored.";
+                    $errorMessage = "Unable to restore ``$($username)``.";
                     "Set-JcSdkUser -id:(`'$($user.id)`') -Suspended:(`$false)"
                 }
                 suspend
                 {
-                    $successMessage = "``$($user.username)`` has been suspended.";
-                    $errorMessage = "Unable to suspend ``$($user.username)``.";
+                    $successMessage = "``$($username)`` has been suspended.";
+                    $errorMessage = "Unable to suspend ``$($username)``.";
                     "Set-JcSdkUser -id:(`'$($user.id)`') -Suspended:(`$true)"
                 }
                 unlock
                 {
-                    $successMessage = "``$($user.username)`` has been unlocked.";
-                    $errorMessage = "Unable to unlock ``$($user.username)``.";
+                    $successMessage = "``$($username)`` has been unlocked.";
+                    $errorMessage = "Unable to unlock ``$($username)``.";
                     "Unlock-JcSdkUser -id:(`'$($user.id)`')"
                 }
                 resetmfa
                 {
-                    $successMessage = "``$($user.username)``'s MFA token has been reset.";
-                    $errorMessage = "Unable to reset user ``$($user.username)``'s MFA token.";
+                    $successMessage = "``$($username)``'s MFA token has been reset.";
+                    $errorMessage = "Unable to reset user ``$($username)``'s MFA token.";
                     if ( $commandArray[3] )
                     {
                         $days = $commandArray[3]
@@ -98,8 +106,8 @@ If ($SlackObject.text)
                 }
                 resetpassword
                 {
-                    $successMessage = "``$($user.username)``'s password has been changed.";
-                    $errorMessage = "Unable to rest ``$($user.username)``'s password.";
+                    $successMessage = "``$($username)``'s password has been changed.";
+                    $errorMessage = "Unable to rest ``$($username)``'s password.";
                     "Set-JcSdkUser -id:(`'$($user.id)`') -Password:(`'$($commandArray[3])`')"
                 }
                 help
