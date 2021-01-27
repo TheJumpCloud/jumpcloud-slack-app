@@ -49,4 +49,4 @@ In the sidebar, click on "Stages", then expand the "Live" stage and click on the
 
 ### Test the App
 
-After configuring the slack app, try to run one of the commands in your Slack Channel, your command will be processed and returned via AWS resources.
+After configuring the slack app, try to run one of the commands in your Slack Channel, your command will be processed and returned via AWS resources. On your first run the application may experience timeouts or take a couple minutes to return. Once you have received a result, subsequent runs should execute significantly faster.
