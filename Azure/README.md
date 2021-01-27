@@ -42,7 +42,7 @@ Once that is done, install your Slack Application in your Workspace. This will g
 
 Click the "Deploy to Azure" button to open the deployment template in your Azure tenant.
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FTheJumpCloud%2Fjumpcloud-slack-app%2FSA-1464-GoLive%2FAzure%2FAzureTemplate%2FdeployJCPowerShellSlackbot.json%3Ftoken%3DAM7NDWLSIUCKJLRVJUFI4UDADLOBI)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fgithub.com%2FTheJumpCloud%2Fjumpcloud-slack-app%2Fblob%2Fmaster%2FAzure%2FAzureTemplate%2FdeployJCPowerShellSlackbot.json)
 
 After clicking the "Deploy to Azure" button and logging in to your Azure tenant, fill out the required parameters to build the JumpCloud App for Slack in your Azure tenant.
 
