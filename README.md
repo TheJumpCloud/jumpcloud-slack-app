@@ -10,16 +10,18 @@ The following commands can be used in your JumpCloud App for Slack.
 ```
 /<command-name> help
 ```
-
+```
+For assistance with user commands enter `<command-name< user help`.
+```
 ```
 /<command-name> user help
 ```
 ```User Commands Help
-$($SlashCommand) user restore <username>                  # Restore a suspended JC user.
-$($SlashCommand) user suspend <username>                  # Suspend a JC user.
-$($SlashCommand) user unlock <username>                   # Unlock a locked JC user.
-$($SlashCommand) user resetMfa <username> <days>          # Reset MFA for a JC user. Default: 7 days
-$($SlashCommand) user resetPassword <username> <password> # Reset a JC user's password.
+/<command-name> user restore <username>                  # Restore a suspended JC user.
+/<command-name> user suspend <username>                  # Suspend a JC user.
+/<command-name> user unlock <username>                   # Unlock a locked JC user.
+/<command-name> user resetMfa <username> <days>          # Reset MFA for a JC user. Default: 7 days
+/<command-name> user resetPassword <username> <password> # Reset a JC user's password.
 ```
 
 Either the JumpCloud Username or the Slack display name may be used for any of these commands as long as the Slack email address matches the JumpCloud email address. If this is not the case, the JumpCloud Username can still be used for any of these commands however the Slack Display Name will not complete successfully.
