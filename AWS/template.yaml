@@ -1,5 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 Transform: AWS::Serverless-2016-10-31
+
 Parameters:
   JumpCloudApiKey:
     Type: String
@@ -15,6 +16,7 @@ Parameters:
   SlackAPIToken:
     Type: String
     NoEcho: true
+
 Metadata:
   AWS::ServerlessRepo::Application:
     Name: JumpCloud-SlackApp
@@ -24,6 +26,7 @@ Metadata:
     HomePageUrl: https://git.io/JtWv1
     SourceCodeUrl: https://git.io/JtWv1
     LicenseURL: LICENSE
+
 Resources:
     SlackAppRole:
         Type: AWS::IAM::Role
@@ -55,10 +58,7 @@ Resources:
                 Statement:
                   - Effect: Allow
                     Action:
-                    - 'sqs:ReceiveMessage'
-                    - 'sqs:DeleteMessage'
-                    - 'sqs:GetQueueAttributes'
-                    - 'sqs:ChangeMessageVisibility'
+                    - 'sqs:*'
                     Resource: !GetAtt SlackAppSQS.Arn
     SlackAppCmk:
         Type: AWS::KMS::Key
@@ -134,6 +134,7 @@ Resources:
         Type: AWS::SQS::Queue
         Properties:
             ReceiveMessageWaitTimeSeconds: 0
+            MessageRetentionPeriod: 120
             VisibilityTimeout: 360
     SlackAppAPI:
         Type: AWS::ApiGateway::RestApi
@@ -168,7 +169,7 @@ Resources:
                           - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${lambdaArn}/invocations
                           - lambdaArn: !GetAtt SlackAppParentFunction.Arn
                         requestTemplates:
-                          application/x-www-form-urlencoded: "{\n    \"postBody\" : $input.json(\"$\")\n}"
+                          application/x-www-form-urlencoded: "{\n  \"postBody\" : $input.json(\"$\"),\n  \"headers\": {\n    #foreach($param in $input.params().header.keySet())\n    \"$param\": \"$util.escapeJavaScript($input.params().header.get($param))\" #if($foreach.hasNext),#end\n    #end\n  }\n}"
                         passthroughBehavior: when_no_match
                         httpMethod: POST
                         contentHandling: CONVERT_TO_TEXT

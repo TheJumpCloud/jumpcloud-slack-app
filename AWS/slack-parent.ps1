@@ -1,4 +1,5 @@
 #Requires -Modules 'AWS.Tools.Common', 'AWS.Tools.SQS'
+
 $headers = $LambdaInput.headers
 Write-Host "JumpCloud Slackbot HTTP Parent Headers: $($headers)"
 Write-Host "Uneditted body: `r`n" +$Body
@@ -24,6 +25,7 @@ $BodyObject | ForEach-Object {
         Add-Member -InputObject:($SlackObject) -MemberType:('NoteProperty') -Name:("other") -Value:([String]$_)
     }
 }
+
 $content = @{
         Body = $Body;
         originalBody = $LambdaInput.postBody;
@@ -31,9 +33,12 @@ $content = @{
         text = $SlackObject.text;
         headers = $headers;
 } | ConvertTo-Json
+
 $message = @{
     default = $content;
 } | ConvertTo-Json
+
 Send-SQSMessage -QueueUrl $env:SQSQueueUrl -MessageBody $message
+
 $Back2Slack = "Executing command ``$($SlackObject.text)``."
 $Back2Slack

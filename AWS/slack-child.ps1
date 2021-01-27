@@ -1,11 +1,8 @@
 #Requires -Modules 'JumpCloud', 'JumpCloud.SDK.DirectoryInsights', 'JumpCloud.SDK.V1', 'JumpCloud.SDK.V2', 'AWS.Tools.Common', 'AWS.Tools.SecretsManager'
-
-Write-Host "LambdaInput Records Body Default: $($LambdaInput.Records[0].Body)"
-
+ 
 $body = $LambdaInput.Records[0].Body | ConvertFrom-Json
 $params = $body.default | ConvertFrom-Json
 
-#Write-Host $LambdaInput
 Write-Host $params.headers
 $bodySplit = $params.Body.Split('&')
 $bodySplit | foreach-object {
@@ -17,13 +14,10 @@ $bodySplit | foreach-object {
     }
 }
 
-
-$Executions.Add($LambdaContext.AwsRequestId)
-
 $secret_manager = Get-SECSecretValue -SecretId $env:SecretsArn
 $secrets = $secret_manager.SecretString | ConvertFrom-Json
 $env:JCApiKey = $secrets.JcApiKey
-$SigningSecret = $secrets.SlackSigningSecret
+$SigningSecret = $secrets.SlackSigningString
 $SlackApiToken = $secrets.SlackApiToken
 
 $postTimeStamp = $params.headers.'x-slack-request-timestamp'
@@ -32,16 +26,12 @@ $postSignature = $params.headers.'x-slack-signature'
 # Format the basestring
 $basestring = "v0:" + $postTimestamp + ":" + $params.originalBody
 
-
-# HMAC SHA: https://gist.github.com/jokecamp/2c1a67b8f277797ecdb3
-# Hex String: https://stackoverflow.com/questions/53529347/hmac-sha256-powershell-convert
+# HMAC SHA265
 $hmacsha = New-Object System.Security.Cryptography.HMACSHA256
 $hmacsha.key = [Text.Encoding]::ASCII.GetBytes($SigningSecret)
-$signature = $hmacsha.ComputeHash([Text.Encoding]::ASCII.GetBytes($basestring))
-$signature = [System.BitConverter]::ToString($signature).Replace('-', '').ToLower()
-
-# Format the responce
-$signature = "v0=" + $signature
+# Format the signature
+$signature = [System.BitConverter]::ToString($hmacsha.ComputeHash([Text.Encoding]::ASCII.GetBytes($basestring))).Replace('-', '').ToLower()
+$signature = "v0=$($signature)"
 
 # If Match, continue
 If ($signature -eq $postSignature) { 
@@ -64,10 +54,10 @@ If ($signature -eq $postSignature) {
                 $response = $response.Content | ConvertFrom-Json
                 $email = $response.user.profile.email
 
-                $user = Get-JcSdkSystemUser -Filter("email:eq:$($email)")
+                $user = Get-JcSdkUser -Filter("email:eq:$($email)")
             }
             else {
-                $user = Get-JcSdkSystemUser -Filter("username:eq:$($commandArray[2])")
+                $user = Get-JcSdkUser -Filter("username:eq:$($commandArray[2])")
             }
         }
         if ( $user.id ) 
