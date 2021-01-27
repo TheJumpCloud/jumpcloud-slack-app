@@ -86,42 +86,50 @@ If ($signature -eq $postSignature) {
                 {
                     restore
                     {
-                        $successMessage = "$($username) has been restored.";
+                        $successMessage = "``$($username)`` has been restored.";
                         $errorMessage = "Unable to restore user ``$($username)``.";
-                        "Set-JcSdkSystemUser -id:(`'$($user.id)`') -Suspended:(`$false)"
+                        "Set-JcSdkUser -id:(`'$($user.id)`') -Suspended:(`$false)"
                     }
                     suspend
                     {
-                        $successMessage = "$($username) has been suspended.";
+                        $successMessage = "``$($username)`` has been suspended.";
                         $errorMessage = "Unable to suspend user ``$($username)``.";
-                        "Set-JcSdkSystemUser -id:(`'$($user.id)`') -Suspended:(`$true)"
+                        "Set-JcSdkUser -id:(`'$($user.id)`') -Suspended:(`$true)"
                     }
                     unlock
                     {
-                        $successMessage = "$($username) has been unlocked.";
+                        $successMessage = "``$($username)`` has been unlocked.";
                         $errorMessage = "Unable to unlock user ``$($username)``.";
-                        "Unlock-JcSdkSystemUser -id:(`'$($user.id)`')"
+                        "Unlock-JcSdkUser -id:(`'$($user.id)`')"
                     }
                     resetmfa
                     {
-                        $successMessage = "$($username)'s MFA token has been reset.";
+                        $successMessage = "``$($username)``'s MFA token has been reset.";
                         $errorMessage = "Unable to reset user ``$($username)``'s MFA token.";
-                        "Reset-JcSdkSystemUserMfa -id(`'$($user.id)`')"
+                        if ( $commandArray[3] )
+                        {
+                            $days = $commandArray[3]
+                        }
+                        else 
+                        {
+                            $days = 7
+                        }
+                        "Reset-JcSdkUserMfa -id(`'$($user.id)`') -Exclusion -ExclusionUntil:((Get-Date).AddDays($($days)))"
                     }
                     resetpassword
                     {
-                        $successMessage = "$($username)'s password has been changed.";
+                        $successMessage = "``$($username)``'s password has been changed.";
                         $errorMessage = "Unable to reset user ``$($username)``'s password.";
-                        "Set-JcSdkSystemUser -id:(`'$($user.id)`') -Password:(`'$($commandArray[3])`')"
+                        "Set-JcSdkUser -id:(`'$($user.id)`') -Password:(`'$($commandArray[3])`')"
                     }
                     help 
                     {
                         $successMessage = "``````User Commands Help
-$($SlashCommand) user restore <username>                  # restore a suspended JC user
-$($SlashCommand) user suspend <username>                  # suspend a JC user
-$($SlashCommand) user unlock <username>                   # unlock a locked JC user
-$($SlashCommand) user resetMfa <username>                 # reset MFA for a JC user
-$($SlashCommand) user resetPassword <username> <password> # reset a JC user's password``````"
+$($SlashCommand) user restore <username>                  # Restore a suspended JC user.
+$($SlashCommand) user suspend <username>                  # Suspend a JC user.
+$($SlashCommand) user unlock <username>                   # Unlock a locked JC user.
+$($SlashCommand) user resetMfa <username> <days>          # Reset MFA for a JC user. Default: 7 days
+$($SlashCommand) user resetPassword <username> <password> # Reset a JC user's password.``````"
                         $errorMessage = "Unable to retrieve ``user help`` information."
                     }
                     default 
