@@ -1,0 +1,258 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "JumpCloudApiKey": {
+            "type": "string",
+            "minLength": 40,
+            "maxLength": 40,
+            "metadata": {
+                "description": "Your JumpCloud API KEY to be encrypted in KeyVault"
+            }
+        },
+        "JumpCloudOrgId": {
+            "type": "string",
+            "minLength": 24,
+            "maxLength": 24,
+            "metadata": {
+                "description": "Your JumpCloud Ord Id to be encrypted in KeyVault"
+            }
+        },
+        "SlackSigningSecret": {
+            "type": "string",
+            "minLength": 32,
+            "maxLength": 32,
+            "metadata": {
+                "description": "Your Slack App Signing Secret to be encrypted in KeyVault"
+            }
+        },
+        "SlackOAuthToken": {
+            "type": "string",
+            "metadata": {
+                "description": "Your Slack OAuth Token to be encrypted in KeyVault"
+            }
+        },
+        "retentionInDays": {
+            "type": "int",
+            "defaultValue": 30,
+            "metadata": {
+                "description": "Days to retain function logs"
+            }
+        }
+
+    },
+    "variables": {
+        "hostingPlanName": "[replace(resourceGroup().name,'.','')]",
+        "functionAppName": "[concat(uniqueString(resourceGroup().id),'-fa')]",
+        "keyVaultName": "[concat(uniqueString(resourceGroup().id),'-kv')]",
+        "appInsightsName": "[concat(uniqueString(resourceGroup().id),'-ai')]",
+        "storageName": "[concat(uniqueString(resourceGroup().id))]",
+        "packageURL": "https://jcautopkg.s3-us-west-2.amazonaws.com/JCPowerShellSlackBot.zip",
+        "powerShellVersion": "~7",
+
+        "EncryptedKey": "[resourceId(resourceGroup().name, 'Microsoft.KeyVault/vaults/secrets', variables('keyVaultName'), 'JCAPIKEY')]",
+        "EncryptedOrg": "[resourceId(resourceGroup().name, 'Microsoft.KeyVault/vaults/secrets', variables('keyVaultName'), 'JCORGID')]",
+        "EncryptedSlackSecret": "[resourceId(resourceGroup().name, 'Microsoft.KeyVault/vaults/secrets', variables('keyVaultName'), 'SlackSecret')]",
+        "EncryptedSlackOAuthToken": "[resourceId(resourceGroup().name, 'Microsoft.KeyVault/vaults/secrets', variables('keyVaultName'), 'SlackOAuthToken')]"
+    },
+    "resources": [
+        {
+            "apiVersion": "2015-05-01-preview",
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[variables('storageName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "accountType": "Standard_LRS"
+            }
+        },
+        {
+            "apiVersion": "2015-08-01",
+            "name": "[variables('hostingPlanName')]",
+            "kind": "functionapp",
+            "type": "Microsoft.Web/serverfarms",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "Y1",
+                "tier": "Dynamic",
+                "size": "Y1",
+                "family": "Y",
+                "capacity": 0
+            },
+            "properties": {
+                "name": "[variables('hostingPlanName')]"
+            }
+        },
+        {
+            "type": "microsoft.insights/components",
+            "name": "[variables('appInsightsName')]",
+            "apiVersion": "2014-04-01",
+            "location": "[resourceGroup().location]",
+            "tags": {},
+            "properties": {
+                "ApplicationId": "[variables('functionAppName')]",
+                "retentionInDays": "[parameters('retentionInDays')]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
+            ]
+        },
+        {
+            "apiVersion": "2016-08-01",
+            "name": "[variables('functionAppName')]",
+            "type": "Microsoft.Web/sites",
+            "location": "[resourceGroup().location]",
+            "kind": "functionapp",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]"
+            ],
+            "properties": {
+                "serverFarmId": "[variables('hostingPlanName')]",
+                "siteConfig": {
+                    "powerShellVersion": "[variables('powerShellVersion')]"
+                }
+            },
+            "resources": [
+                {
+                    "name": "appsettings",
+                    "type": "config",
+                    "apiVersion": "2016-08-01",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]",
+                        "[resourceId('Microsoft.KeyVault/vaults/', variables('keyVaultName'))]"
+                    ],
+                    "properties": {
+                        "JcUpdateModule": "FALSE",
+                        "JcApiKey": "[concat('@Microsoft.KeyVault(SecretUri=', reference(variables('EncryptedKey'), '2015-06-01').secretUriWithVersion, ')')]",
+                        "JcOrgId": "[concat('@Microsoft.KeyVault(SecretUri=', reference(variables('EncryptedOrg'), '2015-06-01').secretUriWithVersion, ')')]",
+                        "SlackSecret": "[concat('@Microsoft.KeyVault(SecretUri=', reference(variables('EncryptedSlackSecret'), '2015-06-01').secretUriWithVersion, ')')]",
+                        "SlackOAuthToken": "[concat('@Microsoft.KeyVault(SecretUri=', reference(variables('EncryptedSlackOAuthToken'), '2015-06-01').secretUriWithVersion, ')')]",
+                        "AzureWebJobsDashboard": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageName'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2015-05-01-preview').key1)]",
+                        "AzureWebJobsStorage": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageName'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2015-05-01-preview').key1)]",
+                        "FUNCTIONS_EXTENSION_VERSION": "~3",
+                        "FUNCTIONS_WORKER_RUNTIME": "powershell",
+                        "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageName'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2015-05-01-preview').key1)]",
+                        "WEBSITE_CONTENTSHARE": "[toLower(variables('functionAppName'))]",
+                        "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(concat('microsoft.insights/components/', variables('appInsightsName'))).InstrumentationKey]",
+                        "JcSlackbot": "Azure"
+                    }
+                },
+                {
+                    "name": "MSDeploy",
+                    "type": "extensions",
+                    "location": "[resourceGroup().location]",
+                    "apiVersion": "2016-08-01",
+                    "dependsOn": [
+                        "[concat('Microsoft.Web/sites/', variables('functionAppName'))]",
+                        "[resourceId('Microsoft.KeyVault/vaults/', variables('keyVaultName'))]",
+                        "[concat('Microsoft.Web/sites/', variables('functionAppName'), '/config/appsettings')]"
+                    ],
+                    "properties": {
+                        "packageUri": "[variables('packageURL')]"
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults",
+            "name": "[variables('keyVaultName')]",
+            "apiVersion": "2018-02-14",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+
+                "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
+            ],
+            "properties": {
+                "enabledForDeployment": "false",
+                "enabledForDiskEncryption": "false",
+                "enabledForTemplateDeployment": "false",
+                "tenantId": "[subscription().tenantId]",
+                "sku": {
+                    "name": "Standard",
+                    "family": "A"
+                },
+                "accessPolicies": [
+                    {
+                        "tenantId": "[subscription().tenantid]",
+                        "objectId": "[reference(resourceId('Microsoft.Web/sites', variables('functionAppName')), '2019-08-01', 'full').identity.principalId]",
+                        "permissions": {
+                            "secrets": [ "get" ]
+                        }
+                    }
+                ]
+            },
+            //Add the required keys
+            "resources": [
+                {
+                    "type": "secrets",
+                    "name": "JCAPIKEY",
+                    "location": "[resourceGroup().location]",
+                    "apiVersion": "2018-02-14",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.KeyVault/vaults/', variables('keyVaultName'))]"
+                    ],
+                    "properties": {
+                        "value": "[parameters('JumpCloudApiKey')]"
+                    }
+                },
+                {
+                    "type": "secrets",
+                    "name": "JCORGID",
+                    "location": "[resourceGroup().location]",
+                    "apiVersion": "2018-02-14",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.KeyVault/vaults/', variables('keyVaultName'))]"
+                    ],
+                    "properties": {
+                        "value": "[parameters('JumpCloudOrgId')]"
+                    }
+                },
+                {
+                    "type": "secrets",
+                    "name": "SlackSecret",
+                    "location": "[resourceGroup().location]",
+                    "apiVersion": "2018-02-14",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.KeyVault/vaults/', variables('keyVaultName'))]"
+                    ],
+                    "properties": {
+                        "value": "[parameters('SlackSigningSecret')]"
+                    }
+                },
+                {
+                    "type": "secrets",
+                    "name": "SlackOAuthToken",
+                    "location": "[resourceGroup().location]",
+                    "apiVersion": "2018-02-14",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.KeyVault/vaults/', variables('keyVaultName'))]"
+                    ],
+                    "properties": {
+                        "value": "[parameters('SlackOAuthToken')]"
+                    }
+                }
+            ]
+        }
+    ],
+    "outputs": {
+        "KeySecret": {
+            "type": "string",
+            "value": "[reference(variables('EncryptedKey'),'2015-06-01').secretUriWithVersion]"
+        },
+        "OrgSecret": {
+            "type": "string",
+            "value": "[reference(variables('EncryptedOrg'),'2015-06-01').secretUriWithVersion]"
+        },
+        "SlackSecret": {
+            "type": "string",
+            "value": "[reference(variables('EncryptedSlackSecret'),'2015-06-01').secretUriWithVersion]"
+        },
+        "SlackOAuthToken": {
+            "type": "string",
+            "value": "[reference(variables('EncryptedSlackOAuthToken'),'2015-06-01').secretUriWithVersion]"
+        }
+    }
+}
