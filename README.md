@@ -21,4 +21,4 @@ The following commands can be used in your JumpCloud App for Slack.
 /<command-name> user resetPassword <username> <password> # Reset a JC user's password.
 ```
 
-Either the JumpCloud Username or the Slack display name may be used for any of these commands as long as the Slack email address matches the JumpCloud email address. If this is not the case, the JumpCloud Username can still be used for any of these commands however the Slack Display Name will not complete successfully.
+Either the JumpCloud Username or the Slack display name (e.g `@Slack User`) may be used for any of these commands as long as the Slack email address matches the JumpCloud email address. If this is not the case, the JumpCloud Username can still be used for any of these commands however the Slack Display Name will not complete successfully.
