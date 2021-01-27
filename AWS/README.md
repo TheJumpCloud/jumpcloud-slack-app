@@ -13,7 +13,7 @@ Creating a new Slack App is relatively simple. Refer to [Slack's documentation](
 
 Once you have created your app, click "OAuth and Permissions". Scroll down to "Scopes". Add the following OAuth scopes to your Slack Application.
 
-![Permissions](./images/slackPermissions.png)
+![Permissions](./images/slackPermissions.PNG)
 
 Once that is done, install your Slack Application in your Workspace. This will generate a Bot OAuth token, which will be used when configuring your Serverless App in AWS.
 
@@ -27,7 +27,7 @@ The JumpCloud API Key, Organization Id (Optional), Slack Signing Secret and Slac
 
 Fill in these values and acknowledge that the app will create custom IAM roles and resource policies. Click "Deploy"
 
-![Application Settings](./images/awsAppSettings.png)
+![Application Settings](./images/awsAppSettings.PNG)
 
 ### Configure Slack
 
@@ -35,9 +35,11 @@ After the resources are built, the function url will have to be copied to your S
 
 Navigate to the newly created CloudFormation Stack. Click on the "Resources" tab and open the "SlackAppAPI".
 
-In the sidebar, click on "Stages", then expand the "Live" stage and click on the nested "POST". This will provide you with the Invoke URL for your Application. Enter this in your Slash Command's Request URL.
+![API URL](./images/awsApiUrl.PNG)
 
-![API URL](./images/awsApiUrl.png)
+In the sidebar, click on "Stages", then expand the "Live" stage and click on the nested "POST". This will provide you with the Invoke URL for your Application. Enter this in your Slash Command's Request URL. Before saving, check the "Escape channels, users, and links sent to your app" box. Click "Save".
+
+![Escape channels, users and links](./images/slackEscape.png)
 
 ### Test the App
 
