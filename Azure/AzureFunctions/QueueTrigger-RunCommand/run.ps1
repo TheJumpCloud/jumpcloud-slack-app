@@ -18,12 +18,16 @@ Else
 $QueueItemObject | ForEach-Object {
     If ($_ -match '=')
     {
-        $KevValue = $_.Split('=')
-        Add-Member -InputObject:($SlackObject) -MemberType:('NoteProperty') -Name:($KevValue[0]) -Value:($KevValue[1])
-        Write-Host "DEBUG: Parsing: Key: '$($KevValue[0])'; Value: '$($KevValue[1])';"
-        if ($KevValue[0] -eq "command")
+        $KeyValue = $_.Split('=')
+        Add-Member -InputObject:($SlackObject) -MemberType:('NoteProperty') -Name:($KeyValue[0]) -Value:($KeyValue[1])
+        Write-Host "DEBUG: Parsing: Key: '$($KeyValue[0])'; Value: '$($KeyValue[1])';"
+        if ($KeyValue[0] -eq "command")
         {
-            $SlashCommand = $KevValue[1]
+            $SlashCommand = $KeyValue[1]
+        }
+        elseif ( $KeyValue[0] -eq "user_id" )
+        {
+            $SlackAdminId = $KeyValue[1]
         }
     }
     Else
@@ -32,137 +36,186 @@ $QueueItemObject | ForEach-Object {
     }
 }
 
+# Allowed Roles
+$AllowedRoles = @(
+    "Administrator With Billing",
+    "Administrator",
+    "Manager",
+    "Help Desk"
+)
+
+#Check if the person executing the Slack command is a JumpCloud Admin
+$JumpCloudAdminUri = "https://console.jumpcloud.com/api/users"
+$JumpCloudAdminHeaders = @{
+    'x-api-key'    = $env:JCApiKey
+    'Content-Type' = 'application/json'
+    'Accept'       = 'application/json'
+}
+$JumpCloudAdmins = (Invoke-RestMethod -Uri $JumpCloudAdminUri -Method GET -Headers $JumpCloudAdminHeaders).results
+
+$SlackHeaders = @{
+    Authorization = "Bearer $($ENV:SlackOAuthToken)"
+}
+
+$SlackAdmin = Invoke-WebRequest -Method GET -Uri "https://slack.com/api/users.info?user=$($SlackAdminId)" -ContentType "application/x-www-form-urlencoded" -Headers $SlackHeaders
+$SlackAdmin = $SlackAdmin.Content | ConvertFrom-Json
+$SlackAdminEmail = $SlackAdmin.user.profile.email
+
 # Run PowerShell Command
-If ($SlackObject.text)
+if ( $SlackAdminEmail -in $JumpCloudAdmins.email )
 {
-    Write-Host "DEBUG: The user '$($SlackObject.user_name)' ran the command '$($SlackObject.text)'"
-    $commandArray = ($SlackObject.text).Split(" ")
-    if ($commandArray[2])
+    $JumpCloudAdminRole = ($JumpCloudAdmins | Where-Object { $_.email -eq $SlackAdminEmail }).roleName
+    if ( $JumpCloudAdminRole -in $AllowedRoles )
     {
-        if ( $commandArray[2][0] -eq "<" )
+        If ($SlackObject.text)
         {
-            $SlackUserRaw = $commandArray[2]
-            $regex = '\<\@([A-Z0-9]+)\|'
-            $SlackUserId = [regex]::Match($SlackUserRaw, $regex).Captures.Groups[1]
-            $headers =
-            @{
-                Authorization = "Bearer $($ENV:SlackOAuthToken)"
-            }
-            $response = Invoke-WebRequest -Method GET -Uri "https://slack.com/api/users.info?user=$($SlackUserId)" -ContentType "application/x-www-form-urlencoded" -Headers $headers
-            $response = $response.Content | ConvertFrom-Json
-            $email = $response.user.profile.email
-            $user = Get-JcSdkUser -Filter("email:eq:$($email)")
-        }
-        else
-        {
-            $user = Get-JcSdkUser -Filter("username:eq:$($commandArray[2])")
-        }
-    }
-    if ( $user.id )
-        {
-            $username = $user.Username
-        }
-        else 
-        {
-            $username = $commandArray[2]
-        }
-    $command = switch ( $commandArray[0].ToLower() )
-    {
-        user
-        {
-            switch ( $commandArray[1].ToLower() )
+            Write-Host "DEBUG: The user '$($SlackObject.user_name)' ran the command '$($SlackObject.text)'"
+            $commandArray = ($SlackObject.text).Split(" ")
+            if ($commandArray[2])
             {
-                restore
+                if ( $commandArray[2][0] -eq "<" )
                 {
-                    $successMessage = "``$($username)`` has been restored.";
-                    $errorMessage = "Unable to restore ``$($username)``.";
-                    "Set-JcSdkUser -id:(`'$($user.id)`') -Suspended:(`$false)"
+                    $SlackUserRaw = $commandArray[2]
+                    $regex = '\<\@([A-Z0-9]+)\|'
+                    $SlackUserId = [regex]::Match($SlackUserRaw, $regex).Captures.Groups[1]
+
+                    $response = Invoke-WebRequest -Method GET -Uri "https://slack.com/api/users.info?user=$($SlackUserId)" -ContentType "application/x-www-form-urlencoded" -Headers $SlackHeaders
+                    $response = $response.Content | ConvertFrom-Json
+                    $email = $response.user.profile.email
+                    $user = Get-JcSdkUser -Filter("email:eq:$($email)")
                 }
-                suspend
+                else
                 {
-                    $successMessage = "``$($username)`` has been suspended.";
-                    $errorMessage = "Unable to suspend ``$($username)``.";
-                    "Set-JcSdkUser -id:(`'$($user.id)`') -Suspended:(`$true)"
+                    $user = Get-JcSdkUser -Filter("username:eq:$($commandArray[2])")
                 }
-                unlock
+            }
+            if ( $user.id )
                 {
-                    $successMessage = "``$($username)`` has been unlocked.";
-                    $errorMessage = "Unable to unlock ``$($username)``.";
-                    "Unlock-JcSdkUser -id:(`'$($user.id)`')"
+                    $username = $user.Username
                 }
-                resetmfa
+                else 
                 {
-                    $successMessage = "``$($username)``'s MFA token has been reset.";
-                    $errorMessage = "Unable to reset user ``$($username)``'s MFA token.";
-                    if ( $commandArray[3] )
+                    $username = $commandArray[2]
+                }
+            $command = switch ( $commandArray[0].ToLower() )
+            {
+                user
+                {
+                    switch ( $commandArray[1].ToLower() )
                     {
-                        $days = $commandArray[3]
+                        restore
+                        {
+                            $successMessage = "``$($username)`` has been restored.";
+                            $errorMessage = "Unable to restore ``$($username)``.";
+                            "Set-JcSdkUser -id:(`'$($user.id)`') -Suspended:(`$false)"
+                        }
+                        suspend
+                        {
+                            $successMessage = "``$($username)`` has been suspended.";
+                            $errorMessage = "Unable to suspend ``$($username)``.";
+                            "Set-JcSdkUser -id:(`'$($user.id)`') -Suspended:(`$true)"
+                        }
+                        unlock
+                        {
+                            $successMessage = "``$($username)`` has been unlocked.";
+                            $errorMessage = "Unable to unlock ``$($username)``.";
+                            "Unlock-JcSdkUser -id:(`'$($user.id)`')"
+                        }
+                        resetmfa
+                        {
+                            $successMessage = "``$($username)``'s MFA token has been reset.";
+                            $errorMessage = "Unable to reset user ``$($username)``'s MFA token.";
+                            if ( $commandArray[3] )
+                            {
+                                $days = $commandArray[3]
+                            }
+                            else
+                            {
+                                $days = 7
+                            }
+                            "Reset-JcSdkUserMfa -id(`'$($user.id)`') -Exclusion -ExclusionUntil:((Get-Date).AddDays($($days)))"
+                        }
+                        resetpassword
+                        {
+                            $successMessage = "``$($username)``'s password has been changed.";
+                            $errorMessage = "Unable to rest ``$($username)``'s password.";
+                            "Set-JcSdkUser -id:(`'$($user.id)`') -Password:(`'$($commandArray[3])`')"
+                        }
+                        help
+                        {
+                            $ResponseBody = $true
+                            $successMessage = "``````User Commands Help
+        $($SlashCommand) user restore <username>                  # Restore a suspended JC user.
+        $($SlashCommand) user suspend <username>                  # Suspend a JC user.
+        $($SlashCommand) user unlock <username>                   # Unlock a locked JC user.
+        $($SlashCommand) user resetMfa <username> <days>          # Reset MFA for a JC user. Default: 7 days
+        $($SlashCommand) user resetPassword <username> <password> # Reset a JC user's password.``````"
+                            $errorMessage = "Unable to retrieve ``user help`` information."
+                        }
+                        default
+                        {
+                            $ResponseBody = $true
+                            $successMessage = "Unable to parse user command. For assistance enter ``$($SlashCommand) user help``"
+                            $errorMessage = "Unable to parse user command. For assistance enter ``$($SlashCommand) user help``"
+                        }
                     }
-                    else
-                    {
-                        $days = 7
-                    }
-                    "Reset-JcSdkUserMfa -id(`'$($user.id)`') -Exclusion -ExclusionUntil:((Get-Date).AddDays($($days)))"
-                }
-                resetpassword
-                {
-                    $successMessage = "``$($username)``'s password has been changed.";
-                    $errorMessage = "Unable to rest ``$($username)``'s password.";
-                    "Set-JcSdkUser -id:(`'$($user.id)`') -Password:(`'$($commandArray[3])`')"
                 }
                 help
                 {
                     $ResponseBody = $true
-                    $successMessage = "``````User Commands Help
-$($SlashCommand) user restore <username>                  # Restore a suspended JC user.
-$($SlashCommand) user suspend <username>                  # Suspend a JC user.
-$($SlashCommand) user unlock <username>                   # Unlock a locked JC user.
-$($SlashCommand) user resetMfa <username> <days>          # Reset MFA for a JC user. Default: 7 days
-$($SlashCommand) user resetPassword <username> <password> # Reset a JC user's password.``````"
-                    $errorMessage = "Unable to retrieve ``user help`` information."
+                    $successMessage = "For assistance with user commands enter ``$($SlashCommand) user help``."
+                    $errorMessage = "Unable to retrieve ``help`` information."
                 }
                 default
                 {
                     $ResponseBody = $true
-                    $successMessage = "Unable to parse user command. For assistance enter ``$($SlashCommand) user help``"
-                    $errorMessage = "Unable to parse user command. For assistance enter ``$($SlashCommand) user help``"
+                    $successMessage = "Unable to parse command. For assistance enter ``$($SlashCommand) help``"
+                    $errorMessage = "Unable to parse command. For assistance enter ``$($SlashCommand) help``"
                 }
             }
+            $ERROR.clear()
+            if ($command)
+            {
+                $ResponseBody = Invoke-Expression -Command:($command) -ErrorVariable:('CommandError')
+                Write-Host "Results of $($command): $($ResponseBody)"
+            }
         }
-        help
+        if ( !$ERROR )
         {
-            $ResponseBody = $true
-            $successMessage = "For assistance with user commands enter ``$($SlashCommand) user help``."
-            $errorMessage = "Unable to retrieve ``help`` information."
+            # Reply to slack with results
+            Invoke-WebRequest -UseBasicParsing `
+                -Body (ConvertTo-Json -Compress -InputObject @{"response_type" = "ephemeral"; "text" = "$($successMessage)" }) `
+                -Method 'POST' `
+                -Uri $SlackObject.response_url `
+                -ContentType 'application/json'
         }
-        default
+        Else
         {
-            $ResponseBody = $true
-            $successMessage = "Unable to parse command. For assistance enter ``$($SlashCommand) help``"
-            $errorMessage = "Unable to parse command. For assistance enter ``$($SlashCommand) help``"
+            # Reply to slack with results
+            Invoke-WebRequest -UseBasicParsing `
+                -Body (ConvertTo-Json -Compress -InputObject @{"response_type" = "ephemeral"; "text" = "$($errorMessage)" }) `
+                -Method 'POST' `
+                -Uri $SlackObject.response_url `
+                -ContentType 'application/json'
         }
     }
-    $ERROR.clear()
-    if ($command)
+    else
     {
-        $ResponseBody = Invoke-Expression -Command:($command) -ErrorVariable:('CommandError')
-        Write-Host "Results of $($command): $($ResponseBody)"
+        $PermissionsMessage = "Unable to complete this command. Your JumpCloud Administrator account does not have sufficient permissions to execute this command."
+        # Reply to slack with results
+        Invoke-WebRequest -UseBasicParsing `
+            -Body (ConvertTo-Json -Compress -InputObject @{"response_type" = "ephemeral"; "text" = "$($PermissionsMessage)" }) `
+            -Method 'POST' `
+            -Uri $SlackObject.response_url `
+            -ContentType 'application/json'
     }
 }
-if ( !$ERROR )
+else
 {
+    $PermissionsMessage = "Unable to complete this command. Your account is not associated with a JumpCloud Administrator account."
     # Reply to slack with results
     Invoke-WebRequest -UseBasicParsing `
-        -Body (ConvertTo-Json -Compress -InputObject @{"response_type" = "ephemeral"; "text" = "$($successMessage)" }) `
-        -Method 'POST' `
-        -Uri $SlackObject.response_url `
-        -ContentType 'application/json'
-}
-Else
-{
-    # Reply to slack with results
-    Invoke-WebRequest -UseBasicParsing `
-        -Body (ConvertTo-Json -Compress -InputObject @{"response_type" = "ephemeral"; "text" = "$($errorMessage)" }) `
+        -Body (ConvertTo-Json -Compress -InputObject @{"response_type" = "ephemeral"; "text" = "$($PermissionsMessage)" }) `
         -Method 'POST' `
         -Uri $SlackObject.response_url `
         -ContentType 'application/json'

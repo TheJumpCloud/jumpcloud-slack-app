@@ -28,11 +28,11 @@ If ($signature -eq $postSignature)
         $bodyDecoded = [System.Web.HttpUtility]::UrlDecode($Request.Body)
         $bodySplit = $bodyDecoded.Split('&')
         $bodySplit | foreach-object {
-            $KevValue = $_.Split('=')
-            Write-Host "DEBUG: Request Body: Key: '$($KevValue[0])'; Value: '$($KevValue[1])';"
-            if ($KevValue[0] -eq "text")
+            $KeyValue = $_.Split('=')
+            Write-Host "DEBUG: Request Body: Key: '$($KeyValue[0])'; Value: '$($KeyValue[1])';"
+            if ($KeyValue[0] -eq "text")
             {
-                $commandText = $KevValue[1]
+                $commandText = $KeyValue[1]
             }
         }
         $headers = $($Request.Headers)
