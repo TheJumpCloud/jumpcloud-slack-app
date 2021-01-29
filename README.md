@@ -7,6 +7,8 @@ Manage your JumpCloud users directly from Slack using the JumpCloud App for Slac
 
 The following commands can be used in your JumpCloud App for Slack.
 
+_Note: In order to execute these commands, the email address associated with your Slack User must also be a JumpCloud Administrator account with one of the following roles: Administrator With Billing (Super Administrator), Administrator, Manager, Help Desk._
+
 ```
 /<command-name> help
 ```
