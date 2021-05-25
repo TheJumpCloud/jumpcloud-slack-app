@@ -17,11 +17,6 @@ jobs:
       image: ubuntu-2004:202104-01
     steps:
       - checkout
-      - run:
-          name: Configure AWS CLI
-          command: |
-            aws configure set aws_access_key_id ${AWS_ACCESS_KEY}
-            aws configure set aws_secret_access_key ${AWS_SECRET_KEY}
       - persist_to_workspace:
           root: .
           paths:
@@ -32,6 +27,11 @@ jobs:
     steps:
       - attach_workspace:
           at: .
+      - run:
+          name: Configure AWS CLI
+          command: |
+            aws configure set aws_access_key_id ${AWS_ACCESS_KEY}
+            aws configure set aws_secret_access_key ${AWS_SECRET_KEY}
       - run:
           name: Release Azure .zip
           command: ./.circleci/deployAzureZip.sh
