@@ -11,7 +11,7 @@ workflows:
   Release testing:
     when:
       and:
-        - equal: [ circleci-project-setup, << pipeline.git.branch >> ]
+        - equal: [ circleci-project-setup, << pipeline.git.branch >> ] #test merge to branch
     jobs:
       - Build
       - Hold:
