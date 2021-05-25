@@ -8,18 +8,10 @@ workflows:
   Azure:
     jobs:
       - Build
-      - Hold:
-          type: approval
-          requires:
-            - Build
-      - Release:
-          requires:
-            - Build
-            - Hold
   Release testing:
     when:
       and:
-        - equal: [ circleci-project-setup, << pipeline.git.branch >> ]
+        - equal: [ master, << pipeline.git.branch >> ]
     jobs:
       - Build
       - Hold:
