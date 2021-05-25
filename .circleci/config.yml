@@ -1,12 +1,4 @@
 version: 2.1
-jobs:
-  build:
-    machine: 
-      image: ubuntu-2004:202104-01
-    steps:
-      - run:
-          name: Hello world
-          command: echo "Hello, World!"
 workflows:
   AWS:
     jobs:
@@ -14,3 +6,14 @@ workflows:
   Azure:
     jobs:
       - build
+jobs:
+  build:
+    machine: 
+      image: ubuntu-2004:202104-01
+    steps:
+      - run:
+          name: Configure AWS CLI
+          command: |
+            aws configure set aws_access_key_id AWS_ACCESS_KEY
+            aws configure set aws_secret_access_key AWS_SECRET_KEY
+            aws sts get-caller-identity
