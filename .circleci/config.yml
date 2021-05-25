@@ -5,11 +5,11 @@ workflows:
   AWS:
     jobs:
       - Build
-      - Setup AWS
+      - Setup AWS:
           requires:
             - Build
-  Azure:
-    jobs:
+  #Azure:
+    #jobs:
       #- Build
   Release testing:
     when:
