@@ -11,7 +11,7 @@ workflows:
   Release testing:
     triggers:
       - schedule:
-          cron: '1 * * * *' # Run one min from push
+          cron: '1 * * * *' # Run one min from push on branch
           filters:
             branches:
               only:
