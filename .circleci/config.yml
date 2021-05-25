@@ -9,11 +9,11 @@ workflows:
     jobs:
       - Build
       - Release:
-        requires:
-          - Build
-        filters:
-          branches:
-            only: /^master/
+          requires:
+            - Build
+          filters:
+            branches:
+              only: /^master/
 jobs:
   Build:
     machine:
