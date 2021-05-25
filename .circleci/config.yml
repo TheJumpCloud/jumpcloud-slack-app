@@ -9,9 +9,13 @@ workflows:
     jobs:
       - Build
   Release testing:
-    when:
-      and:
-        - equal: [ master, << pipeline.git.branch >> ]
+    triggers:
+      - schedule:
+          cron: '*/1 * * * *' # Run one min from push
+          filters:
+            branches:
+              only:
+                - circleci-project-setup
     jobs:
       - Build
       - Hold:
