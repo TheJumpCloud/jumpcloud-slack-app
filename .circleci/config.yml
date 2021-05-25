@@ -4,13 +4,15 @@ workflows:
   version: 2
   AWS:
     jobs:
-      - Build Slack App
+      - Build
   Azure:
     jobs:
-      - Build Slack App
-      - Release Slack App
+      - Build
+      - Release:
+          requires:
+            - Build
 jobs:
-  Build Slack App:
+  Build:
     machine:
       image: ubuntu-2004:202104-01
     steps:
@@ -24,7 +26,7 @@ jobs:
           root: .
           paths:
             - .
-  Release Slack App:
+  Release:
     machine:
       image: ubuntu-2004:202104-01
     steps:
