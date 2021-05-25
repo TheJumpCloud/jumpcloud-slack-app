@@ -6,9 +6,11 @@ workflows:
     jobs:
       - Build
       - Setup AWS
+          requires:
+            - Build
   Azure:
     jobs:
-      - Build
+      #- Build
   Release testing:
     when:
       and:
@@ -81,3 +83,8 @@ commands:
                     sudo apt update
                     sudo apt install powershell
                     pwsh --version
+              - run:
+                  name: Install PowerShell Dependencies
+                  shell: pwsh.exe
+                  command: |
+                    Install-Module JumpCloud -Force
