@@ -9,6 +9,7 @@ workflows:
     jobs:
       - Build
       - Release:
+          type: approval
           requires:
             - Build
 jobs:
