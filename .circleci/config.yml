@@ -29,4 +29,6 @@ jobs:
           at: .
       - run:
           name: Release Azure .zip
-          command: ./.circleci/deployAzureZip.sh
+          command: |
+            ls
+            ./.circleci/deployAzureZip.sh
