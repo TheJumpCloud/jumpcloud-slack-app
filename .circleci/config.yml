@@ -1,12 +1,5 @@
 version: 2.1
 
-build-and-release-azure: &build-and-release-azure
-  - Build Slack App
-  - Release Slack App:
-      type: approval
-      requires:
-        - Build Slack App
-  
 workflows:
   version: 2
   AWS:
@@ -14,7 +7,8 @@ workflows:
       - Build Slack App
   Azure:
     jobs:
-      - *build-and-release-azure
+      - Build Slack App
+      - Release Slack App
 jobs:
   Build Slack App:
     machine:
@@ -38,6 +32,4 @@ jobs:
           at: .
       - run:
           name: Release Azure .zip
-          command: |
-            ls
-            ./.circleci/deployAzureZip.sh
+          command: ./.circleci/deployAzureZip.sh
