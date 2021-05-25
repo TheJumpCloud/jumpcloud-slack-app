@@ -9,11 +9,12 @@ workflows:
     jobs:
       - Build
       - Release:
+          type: approval
           requires:
             - Build
           filters:
             branches:
-              only: /^master/
+              only: /^SA-1774-CircleCI-Setup-KM/
 jobs:
   Build:
     machine:
