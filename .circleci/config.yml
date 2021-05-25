@@ -1,12 +1,19 @@
 version: 2.1
 jobs:
   build:
-    machine: 
+    machine:
       image: ubuntu-2004:202104-01
     steps:
       - run:
           name: Hello world
           command: echo "Hello, World!"
+  release:
+    machine:
+      image: ubuntu-2004:202104-01
+    steps:
+      - run:
+        name: Release Azure S3 .Zip
+        command : ./deployAzureZip.sh
 workflows:
   AWS:
     jobs:
