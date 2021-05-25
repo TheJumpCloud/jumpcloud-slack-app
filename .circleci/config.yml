@@ -8,10 +8,14 @@ workflows:
   Azure:
     jobs:
       - Build
-      - Release:
+      - Hold:
           type: approval
           requires:
             - Build
+      - Release:
+          requires:
+            - Build
+            - Hold
           filters:
             branches:
               only: /^SA-1774-CircleCI-Setup-KM/
