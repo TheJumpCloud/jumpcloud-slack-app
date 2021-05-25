@@ -88,3 +88,5 @@ commands:
                   shell: pwsh
                   command: |
                     Install-Module JumpCloud -Force
+                    Install-Module AWSLambdaPSCore -Force
+                    Get-InstalledModule
