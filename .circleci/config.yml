@@ -24,6 +24,7 @@ jobs:
       image: ubuntu-2004:202104-01
     steps:
       - checkout
+      - run: echo << pipeline.git.branch >>
       - persist_to_workspace:
           root: .
           paths:
