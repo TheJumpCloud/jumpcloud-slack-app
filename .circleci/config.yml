@@ -85,6 +85,6 @@ commands:
                     pwsh --version
               - run:
                   name: Install PowerShell Dependencies
-                  shell: pwsh.exe
+                  shell: pwsh
                   command: |
                     Install-Module JumpCloud -Force
