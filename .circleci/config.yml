@@ -29,7 +29,4 @@ jobs:
           at: .
       - run:
           name: Release Azure .zip
-          command: |
-            s3Uri='s3://sa-circle-ci'
-            zip -r JumpCloudAppForSlackAzure.zip ../Azure
-            aws s3 cp ./JumpCloudAppForSlackAzure.zip $s3Uri
+          command: ./.circleci/deployAzureZip.sh
