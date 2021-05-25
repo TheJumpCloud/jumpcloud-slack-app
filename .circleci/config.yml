@@ -8,6 +8,12 @@ workflows:
   Azure:
     jobs:
       - Build
+  Release testing:
+    when:
+      and:
+        - equal: [ master, << pipeline.git.branch >> ]
+    jobs:
+      - Build
       - Release:
           type: approval
           requires:
