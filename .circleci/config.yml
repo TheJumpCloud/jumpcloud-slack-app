@@ -2,7 +2,11 @@ version: 2.1
 jobs:
   build:
     machine: 
-    image: ubuntu-2004:202104-01
+      image: ubuntu-2004:202104-01
+    steps:
+      - run:
+          name: Hello world
+          command: echo "Hello, World!"
 workflows:
   AWS:
     jobs:
