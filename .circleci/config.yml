@@ -8,20 +8,11 @@ workflows:
   Azure:
     jobs:
       - Build
-  Release testing:
-    when:
-      and:
-        - equal: [ master, << pipeline.git.branch >> ]
-    jobs:
-      - Build
-      - Hold:
-          type: approval
-          requires:
-            - Build
       - Release:
-          requires:
-            - Build
-            - Hold
+        filters:
+          branches:
+            only:
+              - master
 jobs:
   Build:
     machine:
@@ -46,4 +37,5 @@ jobs:
             aws configure set aws_secret_access_key ${AWS_SECRET_KEY}
       - run:
           name: Release Azure .zip
-          command: ./.circleci/deployAzureZip.sh
+          command: |
+            echo "Hello, World!"
