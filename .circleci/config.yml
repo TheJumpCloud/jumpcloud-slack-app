@@ -6,6 +6,7 @@ workflows:
   Azure:
     jobs:
       - build
+      - release
 jobs:
   build:
     machine:
@@ -20,3 +21,12 @@ jobs:
           root: .
           paths:
             - .
+  release:
+    machine:
+      image: ubuntu-2004:202104-01
+    steps:
+      - attach_workspace:
+        at: .
+      -run:
+        name: Release Azure .zip
+        command: .\circleci\deployAzureZip.sh
