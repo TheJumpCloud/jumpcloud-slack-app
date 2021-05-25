@@ -16,17 +16,20 @@ workflows:
           requires:
             - Build
             - Hold
-
-  # Release testing:
-  #   when:
-  #     and:
-  #       - equal: [ master, << pipeline.git.branch >> ]
-  #   jobs:
-  #     - Build
-  #     - Release:
-  #         type: approval
-  #         requires:
-  #           - Build
+  Release testing:
+    when:
+      and:
+        - equal: [ circleci-project-setup, << pipeline.git.branch >> ]
+    jobs:
+      - Build
+      - Hold:
+          type: approval
+          requires:
+            - Build
+      - Release:
+          requires:
+            - Build
+            - Hold
 jobs:
   Build:
     machine:
