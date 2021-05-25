@@ -8,7 +8,7 @@ workflows:
       - build
 jobs:
   build:
-    machine: 
+    machine:
       image: ubuntu-2004:202104-01
     steps:
       - run:
