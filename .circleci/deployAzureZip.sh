@@ -9,8 +9,20 @@ cd "$(dirname "$0")" || exit
 echo "Present Working Directory:"
 pwd
 
-# zip Azure Directory
-zip -r JumpCloudAppForSlackAzure.zip ../Azure
+# make directory
+mkdir JumpCloudAppForSlackAzure
+
+# copy files/ directories into newly created location
+cp -R ../Azure/AzureFunctions/HttpTrigger-RecieveSlackCommand ./JumpCloudAppForSlackAzure
+cp -R ../Azure/AzureFunctions/QueueTrigger-RunCommand ./JumpCloudAppForSlackAzure
+cp ../Azure/AzureFunctions/host.json ./JumpCloudAppForSlackAzure
+cp ../Azure/AzureFunctions/profile.ps1 ./JumpCloudAppForSlackAzure
+cp ../Azure/AzureFunctions/proxies.json ./JumpCloudAppForSlackAzure
+cp ../Azure/AzureFunctions/requirements.psd1 ./JumpCloudAppForSlackAzure
+
+
+# zip Azure Directory | zip w/ deflate compression for all os compatibility
+zip -r -Z deflate JumpCloudAppForSlackAzure.zip ./JumpCloudAppForSlackAzure
 
 # Upload to s3Uri
 aws s3 cp ./JumpCloudAppForSlackAzure.zip $s3Uri
