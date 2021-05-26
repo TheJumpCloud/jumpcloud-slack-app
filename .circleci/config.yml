@@ -1,11 +1,28 @@
 version: 2.1
+parameters:
+  ConfigureAWS:
+    description: ''
+    type: boolean
+    default: true
+  BuildAWS:
+    description: ''
+    type: boolean
+    default: true
+  PublishAWS:
+    description: ''
+    type: boolean
+    default: true
+  PublishAzure:
+    description: ''
+    type: boolean
+    default: true
 
 workflows:
   version: 2
   AWS:
     when:
       condition:
-        - equal: [ circleci-project-setup, << pipeline.git.branch >> ]
+        - equal: [ SA-1774-CircleCI-Setup-KM, << pipeline.git.branch >> ]
     jobs:
       - Setup
       - Approval:
@@ -19,7 +36,7 @@ workflows:
   Azure:
     when:
       and:
-        - equal: [ circleci-project-setup, << pipeline.git.branch >> ]
+        - equal: [ SA-1774-CircleCI-Setup-KM, << pipeline.git.branch >> ]
     jobs:
       - Setup
       - Approval:
@@ -48,33 +65,23 @@ jobs:
     steps:
       - attach_workspace:
           at: .
-      - configure-aws:
-          ConfigureAWS: true
-      - publish-azure:
-          PublishAzure: true
+      - configure-aws
+      - publish-azure
   AWSRelease:
     machine:
       image: ubuntu-2004:202104-01
     steps:
       - attach_workspace:
           at: .
-      - configure-aws:
-          ConfigureAWS: true
-      - setup-aws:
-          BuildAWS: true
-      - publish-aws:
-          PublishAWS: true
+      - configure-aws
+      - setup-aws
+      - publish-aws
 commands:
   configure-aws:
-    parameters:
-      ConfigureAWS:
-        description: ''
-        type: boolean
-        default: true
     steps:
       - when:
           condition:
-            equal: [true, << parameters.ConfigureAWS >>]
+            equal: [true, << pipeline.parameters.ConfigureAWS >>]
           steps:
             - run:
                 name: Configure AWS CLI
@@ -82,15 +89,10 @@ commands:
                   aws configure set aws_access_key_id ${AWS_ACCESS_KEY}
                   aws configure set aws_secret_access_key ${AWS_SECRET_KEY}
   setup-aws:
-    parameters:
-      BuildAWS:
-        description: ''
-        type: boolean
-        default: false
     steps:
       - when:
           condition:
-            equal: [true, << parameters.BuildAWS >>]
+            equal: [true, << pipeline.parameters.BuildAWS >>]
           steps:
             - run:
                 name: Install Dependencies
@@ -123,15 +125,10 @@ commands:
                   Install-Module AWS.Tools.SQS -Force
                   Get-InstalledModule
   publish-aws:
-    parameters:
-      PublishAWS:
-        description: ''
-        type: boolean
-        default: false
     steps:
       - when:
           condition:
-            equal: [true, << parameters.PublishAWS >>]
+            equal: [true, << pipeline.parameters.PublishAWS >>]
           steps:
             - run:
                 name: Package AWS Serverless App
@@ -142,15 +139,10 @@ commands:
                   New-AWSPowerShellLambdaPackage -ScriptPath ./slack-child.ps1 -OutputPackage slack-child.zip
                   sam package --template-file template.yaml --output-template-file packaged.yaml --s3-bucket sa-circle-ci-lambda-package --region us-east-1          
   publish-azure:
-    parameters:
-      PublishAzure:
-        description: ''
-        type: boolean
-        default: false
     steps:
       - when:
           condition:
-            equal: [true, << parameters.PublishAzure >>]
+            equal: [true, << pipeline.parameters.PublishAzure >>]
           steps:
             - run:
                 name: Release Azure .zip
