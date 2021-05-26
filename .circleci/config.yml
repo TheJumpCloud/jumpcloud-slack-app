@@ -9,6 +9,7 @@ workflows:
     jobs:
       - Setup
       - Approval:
+          type: approval
           requires:
             - Setup
       - AWSRelease:
@@ -22,6 +23,7 @@ workflows:
     jobs:
       - Setup
       - Approval:
+          type: approval
           requires:
             - Setup
       - AzureRelease:
@@ -60,8 +62,6 @@ jobs:
           BuildAWS: true
       - publish-aws:
           PublishAWS: true
-  Approval:
-    type: approval
 commands:
   configure-aws:
     parameters:
