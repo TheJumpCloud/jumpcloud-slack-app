@@ -1,7 +1,7 @@
 #!/bin/bash
 # This script zips the contents of the ../Azure Directory & uploads to the s3Uri bucket
 # Currently the 'sa-circle-ci' repository contains the JumpCloudAllForSlackAzure.zip
-s3Uri='s3://sa-circle-ci'
+s3Uri='s3://jcautopkg'
 echo "Present Working Directory:"
 pwd
 echo "Setting Current Working Directory to script location..."
