@@ -11,7 +11,7 @@ parameters:
   BuildAzure:
     description: 'Run Azure Workflow. When `false` Azure Workflow will not execute.'
     type: boolean
-    default: false
+    default: true
   PublishAWS:
     description: 'Publish to AWS Serverless Application Repository.'
     type: boolean
@@ -19,14 +19,14 @@ parameters:
   PublishAzure:
     description: 'Publish to AWS S3 Bucket to be used by Azure Function.'
     type: boolean
-    default: false
+    default: true
 
 workflows:
   version: 2
   AWS:
     when:
       and:
-        - equal: [ SA-1774-CircleCI-Setup-KM, << pipeline.git.branch >> ]
+        - equal: [ master, << pipeline.git.branch >> ]
         - equal: [ true, << pipeline.parameters.BuildAWS >> ]
     jobs:
       - Setup
@@ -41,7 +41,7 @@ workflows:
   Azure:
     when:
       and:
-        - equal: [ SA-1774-CircleCI-Setup-KM, << pipeline.git.branch >> ]
+        - equal: [ master, << pipeline.git.branch >> ]
         - equal: [ true, << pipeline.parameters.BuildAzure >> ]
     jobs:
       - Setup
