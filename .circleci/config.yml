@@ -5,9 +5,15 @@ workflows:
   AWS:
     jobs:
       - Setup
-  #Azure:
-    #jobs:
-      #- Build
+      - Release:
+          requires:
+            - Setup
+  Azure:
+    jobs:
+      - Setup
+      - Release:
+          requires:
+            - Setup
   Release testing:
     when:
       and:
@@ -29,13 +35,8 @@ jobs:
     steps:
       - checkout
       - run: echo << pipeline.git.branch >>
-      - run:
-          name: Configure AWS CLI
-          command: |
-            aws configure set aws_access_key_id ${AWS_ACCESS_KEY}
-            aws configure set aws_secret_access_key ${AWS_SECRET_KEY}
       - setup-aws:
-          BuildAWS: false
+          BuildAWS: true
       - persist_to_workspace:
           root: .
           paths:
@@ -46,11 +47,12 @@ jobs:
     steps:
       - attach_workspace:
           at: .
-      - run:
-          name: Release Azure .zip
-          command: |
-            echo "Hello World"
-            # ./.circleci/deployAzureZip.sh
+      - configure-aws
+          ConfigureAWS: true
+      - publish-aws:
+          PublishAWS: true
+      - publish-azure:
+          PublishAzure: true
 commands:
   setup-aws:
       parameters:
@@ -93,11 +95,54 @@ commands:
                     Install-Module AWS.Tools.SecretsManager -Force
                     Install-Module AWS.Tools.SQS -Force
                     Get-InstalledModule
-              - run:
-                  name: Package AWS Serverless App
-                  shell: pwsh
-                  command: |
-                    cd ./AWS
-                    New-AWSPowerShellLambdaPackage -ScriptPath ./slack-parent.ps1 -OutputPackage slack-parent.zip
-                    New-AWSPowerShellLambdaPackage -ScriptPath ./slack-child.ps1 -OutputPackage slack-child.zip
-                    sam package --template-file template.yaml --output-template-file packaged.yaml --s3-bucket sa-circle-ci-lambda-package --region us-east-1
+  publish-aws:
+    parameters:
+      PublishAWS:
+        description: ''
+        type: boolean
+        default: false
+    steps:
+      - when:
+          condition:
+            equal: [true, << parameters.PublishAWS >>]
+          steps:
+            - run:
+                name: Package AWS Serverless App
+                shell: pwsh
+                command: |
+                  cd ./AWS
+                  New-AWSPowerShellLambdaPackage -ScriptPath ./slack-parent.ps1 -OutputPackage slack-parent.zip
+                  New-AWSPowerShellLambdaPackage -ScriptPath ./slack-child.ps1 -OutputPackage slack-child.zip
+                  sam package --template-file template.yaml --output-template-file packaged.yaml --s3-bucket sa-circle-ci-lambda-package --region us-east-1          
+  publish-azure:
+    parameters:
+      PublishAzure:
+        description: ''
+        type: boolean
+        default: false
+    steps:
+      - when:
+          condition:
+            equal: [true, << parameters.PublishAzure >>]
+          steps:
+            - run:
+                name: Release Azure .zip
+                command: |
+                  echo "Hello World"
+                  # ./.circleci/deployAzureZip.sh
+  configure-aws:
+    parameters:
+      ConfigureAWS:
+        description: ''
+        type: boolean
+        default: true
+    steps:
+      - when:
+        condition:
+          equal: [true, << parameters.ConfigureAWS >>]
+        steps:
+          - run:
+              name: Configure AWS CLI
+              command: |
+                aws configure set aws_access_key_id ${AWS_ACCESS_KEY}
+                aws configure set aws_secret_access_key ${AWS_SECRET_KEY}
