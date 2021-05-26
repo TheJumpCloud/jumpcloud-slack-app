@@ -1,0 +1,157 @@
+version: 2.1
+parameters:
+  ConfigureAWS:
+    description: 'Configure the AWS CLI. When `false`, credentials will not be populated.'
+    type: boolean
+    default: true
+  BuildAWS:
+    description: 'Run AWS Workflow. When `false` AWS Workflow will not execute.'
+    type: boolean
+    default: true
+  BuildAzure:
+    description: 'Run Azure Workflow. When `false` Azure Workflow will not execute.'
+    type: boolean
+    default: true
+  PublishAWS:
+    description: 'Publish to AWS Serverless Application Repository.'
+    type: boolean
+    default: true
+  PublishAzure:
+    description: 'Publish to AWS S3 Bucket to be used by Azure Function.'
+    type: boolean
+    default: true
+
+workflows:
+  version: 2
+  AWS:
+    when:
+      and:
+        - equal: [ master, << pipeline.git.branch >> ]
+        - equal: [ true, << pipeline.parameters.BuildAWS >> ]
+    jobs:
+      - Setup
+      - Approval:
+          type: approval
+          requires:
+            - Setup
+      - AWSRelease:
+          requires:
+            - Setup
+            - Approval
+  Azure:
+    when:
+      and:
+        - equal: [ master, << pipeline.git.branch >> ]
+        - equal: [ true, << pipeline.parameters.BuildAzure >> ]
+    jobs:
+      - Setup
+      - Approval:
+          type: approval
+          requires:
+            - Setup
+      - AzureRelease:
+          requires:
+            - Setup
+            - Approval
+
+jobs:
+  Setup:
+    machine:
+      image: ubuntu-2004:202104-01
+    steps:
+      - checkout
+      - run: echo << pipeline.git.branch >>
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
+  AzureRelease:
+    machine:
+      image: ubuntu-2004:202104-01
+    steps:
+      - attach_workspace:
+          at: .
+      - configure-aws
+      - publish-azure
+  AWSRelease:
+    machine:
+      image: ubuntu-2004:202104-01
+    steps:
+      - attach_workspace:
+          at: .
+      - configure-aws
+      - setup-aws
+      - publish-aws
+commands:
+  configure-aws:
+    steps:
+      - when:
+          condition:
+            equal: [true, << pipeline.parameters.ConfigureAWS >>]
+          steps:
+            - run:
+                name: Configure AWS CLI
+                command: |
+                  aws configure set aws_access_key_id ${AWS_ACCESS_KEY}
+                  aws configure set aws_secret_access_key ${AWS_SECRET_KEY}
+  setup-aws:
+    steps:
+      - when:
+          condition:
+            equal: [true, << pipeline.parameters.BuildAWS >>]
+          steps:
+            - run:
+                name: Install Dependencies
+                command: |
+                  cd /tmp
+                  echo "Installing PowerShell Core"
+                  wget -q https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb
+                  sudo apt-get install ./packages-microsoft-prod.deb
+                  sudo apt update
+                  sudo apt install powershell
+                  pwsh --version
+                  echo "Installing AWS SAM CLI"
+                  wget -q https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip
+                  unzip aws-sam-cli-linux-x86_64.zip -d sam-installation
+                  sudo ./sam-installation/install
+                  sam --version
+                  echo "Installing .NET Core 3.1"
+                  sudo apt-get update; \
+                  sudo apt-get install -y apt-transport-https && \
+                  sudo apt-get update && \
+                  sudo apt-get install -y dotnet-sdk-3.1
+            - run:
+                name: Install PowerShell Dependencies
+                shell: pwsh
+                command: |
+                  Install-Module JumpCloud -Force
+                  Install-Module AWSLambdaPSCore -Force
+                  Install-Module AWS.Tools.Common -Force
+                  Install-Module AWS.Tools.SecretsManager -Force
+                  Install-Module AWS.Tools.SQS -Force
+                  Get-InstalledModule
+  publish-aws:
+    steps:
+      - when:
+          condition:
+            equal: [true, << pipeline.parameters.PublishAWS >>]
+          steps:
+            - run:
+                name: Package & Deploy AWS Serverless App
+                shell: pwsh
+                command: |
+                  cd ./AWS
+                  New-AWSPowerShellLambdaPackage -ScriptPath ./slack-parent.ps1 -OutputPackage slack-parent.zip
+                  New-AWSPowerShellLambdaPackage -ScriptPath ./slack-child.ps1 -OutputPackage slack-child.zip
+                  sam package --template-file template.yaml --output-template-file packaged.yaml --s3-bucket sa-circle-ci-lambda-package --region us-east-1
+                  sam publish --template-file /home/circleci/project/AWS/packaged.yaml --region us-east-1
+  publish-azure:
+    steps:
+      - when:
+          condition:
+            equal: [true, << pipeline.parameters.PublishAzure >>]
+          steps:
+            - run:
+                name: Release Azure .zip
+                command: |
+                  ./.circleci/deployAzureZip.sh
