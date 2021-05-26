@@ -38,8 +38,6 @@ jobs:
     steps:
       - checkout
       - run: echo << pipeline.git.branch >>
-      - configure-aws:
-          ConfigureAWS: true
       - persist_to_workspace:
           root: .
           paths:
@@ -50,6 +48,8 @@ jobs:
     steps:
       - attach_workspace:
           at: .
+      - configure-aws:
+          ConfigureAWS: true
       - publish-azure:
           PublishAzure: true
   AWSRelease:
@@ -58,6 +58,8 @@ jobs:
     steps:
       - attach_workspace:
           at: .
+      - configure-aws:
+          ConfigureAWS: true
       - setup-aws:
           BuildAWS: true
       - publish-aws:
