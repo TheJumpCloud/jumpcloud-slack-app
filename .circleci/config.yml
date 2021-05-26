@@ -7,19 +7,19 @@ parameters:
   BuildAWS:
     description: 'Run AWS Workflow. When `false` AWS Workflow will not execute.'
     type: boolean
-    default: true
+    default: false
   BuildAzure:
     description: 'Run Azure Workflow. When `false` Azure Workflow will not execute.'
     type: boolean
-    default: false
+    default: true
   PublishAWS:
     description: 'Publish to AWS Serverless Application Repository.'
     type: boolean
-    default: true
+    default: false
   PublishAzure:
     description: 'Publish to AWS S3 Bucket to be used by Azure Function.'
     type: boolean
-    default: false
+    default: true
 
 workflows:
   version: 2
@@ -153,5 +153,4 @@ commands:
             - run:
                 name: Release Azure .zip
                 command: |
-                  echo "Hello World"
-                  # ./.circleci/deployAzureZip.sh
+                  ./.circleci/deployAzureZip.sh
