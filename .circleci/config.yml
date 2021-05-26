@@ -7,19 +7,19 @@ parameters:
   BuildAWS:
     description: 'Run AWS Workflow. When `false` AWS Workflow will not execute.'
     type: boolean
-    default: false
+    default: true
   BuildAzure:
     description: 'Run Azure Workflow. When `false` Azure Workflow will not execute.'
     type: boolean
-    default: true
+    default: false
   PublishAWS:
     description: 'Publish to AWS Serverless Application Repository.'
     type: boolean
-    default: false
+    default: true
   PublishAzure:
     description: 'Publish to AWS S3 Bucket to be used by Azure Function.'
     type: boolean
-    default: true
+    default: false
 
 workflows:
   version: 2
