@@ -7,19 +7,19 @@ parameters:
   BuildAWS:
     description: 'Run AWS Workflow. When `false` AWS Workflow will not execute.'
     type: boolean
-    default: false
+    default: true
   BuildAzure:
     description: 'Run Azure Workflow. When `false` Azure Workflow will not execute.'
     type: boolean
-    default: true
+    default: false
   PublishAWS:
     description: 'Publish to AWS Serverless Application Repository.'
     type: boolean
-    default: false
+    default: true
   PublishAzure:
     description: 'Publish to AWS S3 Bucket to be used by Azure Function.'
     type: boolean
-    default: true
+    default: false
 
 workflows:
   version: 2
@@ -143,7 +143,8 @@ commands:
                   cd ./AWS
                   New-AWSPowerShellLambdaPackage -ScriptPath ./slack-parent.ps1 -OutputPackage slack-parent.zip
                   New-AWSPowerShellLambdaPackage -ScriptPath ./slack-child.ps1 -OutputPackage slack-child.zip
-                  sam package --template-file template.yaml --output-template-file packaged.yaml --s3-bucket sa-circle-ci-lambda-package --region us-east-1          
+                  sam package --template-file template.yaml --output-template-file packaged.yaml --s3-bucket sa-circle-ci-lambda-package --region us-east-1
+                  sam deploy --template-file /home/circleci/project/AWS/packaged.yaml --stack-name JumpCloud-SlackApp
   publish-azure:
     steps:
       - when:
