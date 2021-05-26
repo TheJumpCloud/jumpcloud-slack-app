@@ -8,7 +8,7 @@ workflows:
         - equal: [ circleci-project-setup, << pipeline.git.branch >> ]
     jobs:
       - Setup
-      - Approval
+      - Approval:
           requires:
             - Setup
       - AWSRelease:
@@ -21,7 +21,7 @@ workflows:
         - equal: [ circleci-project-setup, << pipeline.git.branch >> ]
     jobs:
       - Setup
-      - Approval
+      - Approval:
           requires:
             - Setup
       - AzureRelease:
