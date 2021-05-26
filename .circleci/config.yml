@@ -5,13 +5,13 @@ workflows:
   AWS:
     jobs:
       - Setup
-      - Release:
+      - AWSRelease:
           requires:
             - Setup
   Azure:
     jobs:
       - Setup
-      - Release:
+      - AzureRelease:
           requires:
             - Setup
   Release testing:
@@ -35,25 +35,47 @@ jobs:
     steps:
       - checkout
       - run: echo << pipeline.git.branch >>
-      - setup-aws:
-          BuildAWS: true
+      - configure-aws:
+          ConfigureAWS: true
       - persist_to_workspace:
           root: .
           paths:
             - .
-  Release:
+  AzureRelease:
     machine:
       image: ubuntu-2004:202104-01
     steps:
       - attach_workspace:
           at: .
-      - configure-aws
-          ConfigureAWS: true
-      - publish-aws:
-          PublishAWS: true
       - publish-azure:
           PublishAzure: true
+  AWSRelease:
+    machine:
+      image: ubuntu-2004:202104-01
+    steps:
+      - attach_workspace:
+          at: .
+      - setup-aws:
+          BuildAWS: true
+      - publish-aws:
+          PublishAWS: true
 commands:
+  configure-aws:
+    parameters:
+      ConfigureAWS:
+        description: ''
+        type: boolean
+        default: true
+    steps:
+      - when:
+        condition:
+          equal: [true, << parameters.ConfigureAWS >>]
+        steps:
+          - run:
+              name: Configure AWS CLI
+              command: |
+                aws configure set aws_access_key_id ${AWS_ACCESS_KEY}
+                aws configure set aws_secret_access_key ${AWS_SECRET_KEY}
   setup-aws:
       parameters:
         BuildAWS:
@@ -130,19 +152,3 @@ commands:
                 command: |
                   echo "Hello World"
                   # ./.circleci/deployAzureZip.sh
-  configure-aws:
-    parameters:
-      ConfigureAWS:
-        description: ''
-        type: boolean
-        default: true
-    steps:
-      - when:
-        condition:
-          equal: [true, << parameters.ConfigureAWS >>]
-        steps:
-          - run:
-              name: Configure AWS CLI
-              command: |
-                aws configure set aws_access_key_id ${AWS_ACCESS_KEY}
-                aws configure set aws_secret_access_key ${AWS_SECRET_KEY}
