@@ -4,7 +4,7 @@ workflows:
   version: 2
   AWS:
     when:
-      and:
+      condition:
         - equal: [ circleci-project-setup, << pipeline.git.branch >> ]
     jobs:
       - Setup
