@@ -22,7 +22,7 @@ Metadata:
     Name: JumpCloud-SlackApp
     Description: This Serverless Application can be used to deploy all the pieces in AWS required to configure the JumpCloud App for Slack.
     Author: JumpCloud Solutions Architecture
-    SemanticVersion: 1.0.0
+    SemanticVersion: 1.0.2
     HomePageUrl: https://git.io/JtWv1
     SourceCodeUrl: https://git.io/JtWv1
     LicenseURL: LICENSE
