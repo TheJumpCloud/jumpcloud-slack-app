@@ -71,14 +71,14 @@ commands:
         default: true
     steps:
       - when:
-        condition:
-          equal: [true, << parameters.ConfigureAWS >>]
-        steps:
-          - run:
-              name: Configure AWS CLI
-              command: |
-                aws configure set aws_access_key_id ${AWS_ACCESS_KEY}
-                aws configure set aws_secret_access_key ${AWS_SECRET_KEY}
+          condition:
+            equal: [true, << parameters.ConfigureAWS >>]
+          steps:
+            - run:
+                name: Configure AWS CLI
+                command: |
+                  aws configure set aws_access_key_id ${AWS_ACCESS_KEY}
+                  aws configure set aws_secret_access_key ${AWS_SECRET_KEY}
   setup-aws:
     parameters:
       BuildAWS:
