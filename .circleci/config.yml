@@ -100,4 +100,4 @@ commands:
                     cd ./AWS
                     New-AWSPowerShellLambdaPackage -ScriptPath ./slack-parent.ps1 -OutputPackage slack-parent.zip
                     New-AWSPowerShellLambdaPackage -ScriptPath ./slack-child.ps1 -OutputPackage slack-child.zip
-                    dir
+                    sam package --template-file template.yaml --output-template-file packaged.yaml --s3-bucket sa-circle-ci-lambda-package
