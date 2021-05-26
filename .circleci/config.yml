@@ -3,19 +3,19 @@ parameters:
   ConfigureAWS:
     description: ''
     type: boolean
-    default: true
+    default: false
   BuildAWS:
     description: ''
     type: boolean
-    default: true
+    default: false
   PublishAWS:
     description: ''
     type: boolean
-    default: true
+    default: false
   PublishAzure:
     description: ''
     type: boolean
-    default: true
+    default: false
 
 workflows:
   version: 2
