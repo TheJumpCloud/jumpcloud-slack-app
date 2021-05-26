@@ -3,7 +3,7 @@ parameters:
   ConfigureAWS:
     description: 'Configure the AWS CLI. When `false`, credentials will not be populated.'
     type: boolean
-    default: false
+    default: true
   BuildAWS:
     description: 'Run AWS Workflow. When `false` AWS Workflow will not execute.'
     type: boolean
@@ -19,7 +19,7 @@ parameters:
   PublishAzure:
     description: 'Publish to AWS S3 Bucket to be used by Azure Function.'
     type: boolean
-    default: false
+    default: true
 
 workflows:
   version: 2
