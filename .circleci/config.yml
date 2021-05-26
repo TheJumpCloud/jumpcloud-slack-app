@@ -4,7 +4,7 @@ workflows:
   version: 2
   AWS:
     jobs:
-      - Build
+      - Setup
   #Azure:
     #jobs:
       #- Build
@@ -13,22 +13,27 @@ workflows:
       and:
         - equal: [ circleci-project-setup, << pipeline.git.branch >> ] #test merge to branch
     jobs:
-      - Build
+      - Setup
       - Hold:
           type: approval
           requires:
-            - Build
+            - Setup
       - Release:
           requires:
-            - Build
+            - Setup
             - Hold
 jobs:
-  Build:
+  Setup:
     machine:
       image: ubuntu-2004:202104-01
     steps:
       - checkout
       - run: echo << pipeline.git.branch >>
+      - run:
+          name: Configure AWS CLI
+          command: |
+            aws configure set aws_access_key_id ${AWS_ACCESS_KEY}
+            aws configure set aws_secret_access_key ${AWS_SECRET_KEY}
       - setup-aws:
           BuildAWS: true
       - persist_to_workspace:
@@ -41,11 +46,6 @@ jobs:
     steps:
       - attach_workspace:
           at: .
-      - run:
-          name: Configure AWS CLI
-          command: |
-            aws configure set aws_access_key_id ${AWS_ACCESS_KEY}
-            aws configure set aws_secret_access_key ${AWS_SECRET_KEY}
       - run:
           name: Release Azure .zip
           command: |
