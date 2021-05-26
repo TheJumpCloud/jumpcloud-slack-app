@@ -3,31 +3,32 @@ version: 2.1
 workflows:
   version: 2
   AWS:
+    when:
+      and:
+        - equal: [ circleci-project-setup, << pipeline.git.branch >> ]
     jobs:
       - Setup
+      - Approval
+          requires:
+            - Setup
       - AWSRelease:
           requires:
             - Setup
+            - Approval
   Azure:
+    when:
+      and:
+        - equal: [ circleci-project-setup, << pipeline.git.branch >> ]
     jobs:
       - Setup
+      - Approval
+          requires:
+            - Setup
       - AzureRelease:
           requires:
             - Setup
-  Release testing:
-    when:
-      and:
-        - equal: [ circleci-project-setup, << pipeline.git.branch >> ] #test merge to branch
-    jobs:
-      - Setup
-      - Hold:
-          type: approval
-          requires:
-            - Setup
-      - Release:
-          requires:
-            - Setup
-            - Hold
+            - Approval
+
 jobs:
   Setup:
     machine:
@@ -59,6 +60,8 @@ jobs:
           BuildAWS: true
       - publish-aws:
           PublishAWS: true
+  Approval:
+    type: approval
 commands:
   configure-aws:
     parameters:
@@ -77,46 +80,46 @@ commands:
                 aws configure set aws_access_key_id ${AWS_ACCESS_KEY}
                 aws configure set aws_secret_access_key ${AWS_SECRET_KEY}
   setup-aws:
-      parameters:
-        BuildAWS:
-          description: ''
-          type: boolean
-          default: false
-      steps:
-        - when:
-            condition:
-              equal: [true, << parameters.BuildAWS >>]
-            steps:
-              - run:
-                  name: Install Dependencies
-                  command: |
-                    cd /tmp
-                    echo "Installing PowerShell Core"
-                    wget -q https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb
-                    sudo apt-get install ./packages-microsoft-prod.deb
-                    sudo apt update
-                    sudo apt install powershell
-                    pwsh --version
-                    echo "Installing AWS SAM CLI"
-                    wget -q https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip
-                    unzip aws-sam-cli-linux-x86_64.zip -d sam-installation
-                    sudo ./sam-installation/install
-                    sam --version
-                    echo "Installing .NET Core 3.1"
-                    sudo apt-get update; \
-                    sudo apt-get install -y apt-transport-https && \
-                    sudo apt-get update && \
-                    sudo apt-get install -y dotnet-sdk-3.1
-              - run:
-                  name: Install PowerShell Dependencies
-                  shell: pwsh
-                  command: |
-                    Install-Module JumpCloud -Force
-                    Install-Module AWSLambdaPSCore -Force
-                    Install-Module AWS.Tools.Common -Force
-                    Install-Module AWS.Tools.SecretsManager -Force
-                    Install-Module AWS.Tools.SQS -Force
-                    Get-InstalledModule
+    parameters:
+      BuildAWS:
+        description: ''
+        type: boolean
+        default: false
+    steps:
+      - when:
+          condition:
+            equal: [true, << parameters.BuildAWS >>]
+          steps:
+            - run:
+                name: Install Dependencies
+                command: |
+                  cd /tmp
+                  echo "Installing PowerShell Core"
+                  wget -q https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb
+                  sudo apt-get install ./packages-microsoft-prod.deb
+                  sudo apt update
+                  sudo apt install powershell
+                  pwsh --version
+                  echo "Installing AWS SAM CLI"
+                  wget -q https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip
+                  unzip aws-sam-cli-linux-x86_64.zip -d sam-installation
+                  sudo ./sam-installation/install
+                  sam --version
+                  echo "Installing .NET Core 3.1"
+                  sudo apt-get update; \
+                  sudo apt-get install -y apt-transport-https && \
+                  sudo apt-get update && \
+                  sudo apt-get install -y dotnet-sdk-3.1
+            - run:
+                name: Install PowerShell Dependencies
+                shell: pwsh
+                command: |
+                  Install-Module JumpCloud -Force
+                  Install-Module AWSLambdaPSCore -Force
+                  Install-Module AWS.Tools.Common -Force
+                  Install-Module AWS.Tools.SecretsManager -Force
+                  Install-Module AWS.Tools.SQS -Force
+                  Get-InstalledModule
   publish-aws:
     parameters:
       PublishAWS:
