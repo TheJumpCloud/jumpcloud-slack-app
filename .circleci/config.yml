@@ -199,8 +199,10 @@ commands:
                 name: Run Pester Tests
                 shell: pwsh
                 command: |
+                  $ErrorActionPreference = 'Stop'
                   Install-Module -Name Pester -Force
                   Install-Module -Name PSScriptAnalyzer -Force
+                  Import-Module Pester
                   ./Deploy/InvokePester.ps1
             - store_test_results:
                 name: Uploading test results'

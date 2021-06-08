@@ -1,4 +1,4 @@
-$PesterTests = Get-ChildItem -Path:($PSScriptRoot + '/*.Tests.ps1') -Recurse
+# $PesterTests = Get-ChildItem -Path:($PSScriptRoot + '/*.Tests.ps1') -Recurse
 
 $PesterResultsFileXmldir = "$PSScriptRoot/test_results/"
 # $PesterResultsFileXml = $PesterResultsFileXmldir + "results.xml"
