@@ -199,7 +199,8 @@ commands:
                 name: Run Pester Tests
                 shell: pwsh
                 command: |
-                  install-module Pester -Force
+                  Install-Module -Name Pester -Force
+                  Install-Module -Name PSScriptAnalyzer -Force
                   ./Deploy/InvokePester.ps1
             - store_test_results:
                 name: Uploading test results'
