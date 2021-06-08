@@ -32,7 +32,10 @@ workflows:
       and:
         - equal: [ true, << pipeline.parameters.InvokePester >> ]
     jobs:
-      - InvokePesterTests
+      - Setup
+      - InvokePesterTests:
+          requires:
+            - Setup
   AWS:
     when:
       and:
