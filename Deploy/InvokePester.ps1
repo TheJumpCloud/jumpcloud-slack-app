@@ -16,7 +16,7 @@ $configuration.testresult.OutputFormat = 'JUnitXml'
 $configuration.CodeCoverage.OutputPath = ($PesterResultsFileXmldir + 'coverage.xml')
 $configuration.testresult.OutputPath = ($PesterResultsFileXmldir + 'results.xml')
 
-Write-Host ("[RUN COMMAND] Invoke-Pester -Path:('$PSScriptRoot')"
+Write-Host ("[RUN COMMAND] Invoke-Pester -Path:('$PSScriptRoot'")
 Invoke-Pester -configuration $configuration
 
 $PesterTestResultPath = (Get-ChildItem -Path:("$($PesterResultsFileXmldir)")).FullName | Where-Object { $_ -match "results.xml" }
