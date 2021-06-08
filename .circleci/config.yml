@@ -20,6 +20,10 @@ parameters:
     description: 'Publish to AWS S3 Bucket to be used by Azure Function.'
     type: boolean
     default: true
+  InvokePester:
+    description: 'Invoke Pester Tests.'
+    type: boolean
+    default: true
 
 workflows:
   version: 2
@@ -30,6 +34,7 @@ workflows:
         - equal: [ true, << pipeline.parameters.BuildAWS >> ]
     jobs:
       - Setup
+      - InvokePester
       - Approval:
           type: approval
           requires:
@@ -45,6 +50,7 @@ workflows:
         - equal: [ true, << pipeline.parameters.BuildAzure >> ]
     jobs:
       - Setup
+      - InvokePester
       - Approval:
           type: approval
           requires:
@@ -65,6 +71,14 @@ jobs:
           root: .
           paths:
             - .
+  InvokePester:
+    machine:
+      image: ubuntu-2004:202104-01
+    steps:
+      - attach_workspace:
+        at: .
+      - install-pwsh
+      - invoke-pester
   AzureRelease:
     machine:
       image: ubuntu-2004:202104-01
@@ -155,3 +169,25 @@ commands:
                 name: Release Azure .zip
                 command: |
                   ./.circleci/deployAzureZip.sh
+  install-pwsh:
+    steps:
+      -run:
+        name: Install PowerShell
+        command: |
+          echo   "Installing PowerShell Core"
+          wget -q https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb
+          sudo apt-get install ./packages-microsoft-prod.deb
+          sudo apt update
+          sudo apt install powershell
+          pwsh --version
+  invoke-pester:
+    steps:
+      - when:
+          condition:
+            equal: [true, << pipeline.parameters.InvokePester >>]
+          steps:
+            - run:
+                name: Release Azure .zip
+                shell: pwsh
+                command: |
+                  ./deploy/invokePester.ps1
