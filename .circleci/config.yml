@@ -27,6 +27,12 @@ parameters:
 
 workflows:
   version: 2
+  Test:
+    when:
+      and:
+        - equal: [ true, << pipeline.parameters.InvokePester >> ]
+    jobs:
+      - InvokePesterTests
   AWS:
     when:
       and:
