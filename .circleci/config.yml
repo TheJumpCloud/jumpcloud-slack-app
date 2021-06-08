@@ -193,10 +193,10 @@ commands:
             equal: [true, << pipeline.parameters.InvokePester >>]
           steps:
             - run:
-                name: Release Azure .zip
+                name: Run Pester Tests
                 shell: pwsh
                 command: |
-                  ./deploy/invokePester.ps1
+                  ./Deploy/InvokePester.ps1
             - store_test_results:
                 name: Uploading test results'
                 path: "./Deploy/test_results/"
