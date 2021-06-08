@@ -13,12 +13,10 @@ $configuration.Should.ErrorAction = 'Continue'
 $configuration.CodeCoverage.Enabled = $true
 $configuration.testresult.Enabled = $true
 $configuration.testresult.OutputFormat = 'JUnitXml'
-$configuration.Filter.Tag = $IncludeTags
-$configuration.Filter.ExcludeTag = $ExcludeTagList
 $configuration.CodeCoverage.OutputPath = ($PesterResultsFileXmldir + 'coverage.xml')
 $configuration.testresult.OutputPath = ($PesterResultsFileXmldir + 'results.xml')
 
-Write-Host ("[RUN COMMAND] Invoke-Pester -Path:('$PSScriptRoot') -TagFilter:('$($IncludeTags -join "','")') -ExcludeTagFilter:('$($ExcludeTagList -join "','")') -PassThru") -BackgroundColor:('Black') -ForegroundColor:('Magenta')
+Write-Host ("[RUN COMMAND] Invoke-Pester -Path:('$PSScriptRoot')"
 Invoke-Pester -configuration $configuration
 
 $PesterTestResultPath = (Get-ChildItem -Path:("$($PesterResultsFileXmldir)")).FullName | Where-Object { $_ -match "results.xml" }

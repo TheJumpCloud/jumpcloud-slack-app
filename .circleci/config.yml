@@ -199,6 +199,7 @@ commands:
                 name: Run Pester Tests
                 shell: pwsh
                 command: |
+                  isntall-module Pester -Force
                   ./Deploy/InvokePester.ps1
             - store_test_results:
                 name: Uploading test results'
