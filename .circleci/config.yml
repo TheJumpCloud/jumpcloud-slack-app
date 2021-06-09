@@ -3,23 +3,23 @@ parameters:
   ConfigureAWS:
     description: 'Configure the AWS CLI. When `false`, credentials will not be populated.'
     type: boolean
-    default: true
+    default: false
   BuildAWS:
     description: 'Run AWS Workflow. When `false` AWS Workflow will not execute.'
     type: boolean
-    default: true
+    default: false
   BuildAzure:
     description: 'Run Azure Workflow. When `false` Azure Workflow will not execute.'
     type: boolean
-    default: true
+    default: false
   PublishAWS:
     description: 'Publish to AWS Serverless Application Repository.'
     type: boolean
-    default: true
+    default: false
   PublishAzure:
     description: 'Publish to AWS S3 Bucket to be used by Azure Function.'
     type: boolean
-    default: true
+    default: false
   InvokePester:
     description: 'Invoke Pester Tests.'
     type: boolean
