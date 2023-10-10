@@ -1,3 +1,6 @@
+# Note:
+JumpCloud will no longer be supporting this Application. This archive is now read-only.
+
 # JumpCloud App for Slack
 Manage your JumpCloud users directly from Slack using the JumpCloud App for Slack! Configure this app in either [AWS](https://github.com/TheJumpCloud/jumpcloud-slack-app/tree/master/AWS) or [Azure](https://github.com/TheJumpCloud/jumpcloud-slack-app/tree/master/Azure)
 
